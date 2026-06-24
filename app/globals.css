@@ -1,26 +1,106 @@
-@import "tailwindcss";
+/* app/globals.css */
+@import url('https://fonts.cdnfonts.com/css/google-sans');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Roxo — acentos (botões, bordas, ícones) */
+  --p:      #9333FF;
+  --p2:     #7C00FF;
+  --p3:     #B57BFF;
+  --p-soft: rgba(147,51,255,0.12);
+  --p-line: rgba(147,51,255,0.30);
+
+  /* Fundos */
+  --bg:     #0B0612;
+  --bg2:    #140A22;
+  --card:   rgba(28,15,48,0.55);
+
+  /* Texto — cinza NEUTRO (sem tom roxo) */
+  --ink:    #F0F0F2;   /* principal — branco neutro */
+  --ink-2:  #A3A3AE;   /* secundário — cinza médio */
+  --ink-3:  #6B6B78;   /* terciário — cinza escuro */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Product Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1,h2,h3,h4,h5 { font-family: 'Product Sans', sans-serif; letter-spacing: -0.02em; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.4); border-radius: 8px; }
+
+/* ── Card com contorno gradiente animado no hover ── */
+.glass-card {
+  position: relative;
+  background: var(--card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 18px;
+  border: 1px solid rgba(139,92,246,0.12);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
+  overflow: hidden;
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.8), transparent);
+  opacity: 0;
+  transition: opacity .35s;
+}
+.glass-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(139,92,246,0.4);
+  box-shadow: 0 12px 40px rgba(123, 91, 173, 0.25), 0 0 0 1px rgba(139,92,246,0.15);
+}
+.glass-card:hover::before { opacity: 1; }
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(400px circle at var(--mx,50%) var(--my,50%), rgba(139,92,246,0.12), transparent 40%);
+  opacity: 0;
+  transition: opacity .35s;
+  pointer-events: none;
+}
+.glass-card:hover::after { opacity: 1; }
+
+@keyframes orb1 {
+  0%   { transform: translate(0,0)        scale(1);    opacity:.8; }
+  25%  { transform: translate(80px,-60px)  scale(1.2);  opacity:1;  }
+  50%  { transform: translate(-40px,80px)  scale(.85);  opacity:.6; }
+  75%  { transform: translate(60px,40px)   scale(1.1);  opacity:.9; }
+  100% { transform: translate(0,0)        scale(1);    opacity:.8; }
+}
+@keyframes orb2 {
+  0%   { transform: translate(0,0)         scale(1);   opacity:.6; }
+  33%  { transform: translate(-90px,70px)   scale(1.15);opacity:.9; }
+  66%  { transform: translate(70px,-80px)   scale(.9);  opacity:.6; }
+  100% { transform: translate(0,0)         scale(1);   opacity:.6; }
+}
+@keyframes orb3 {
+  0%   { transform: translate(0,0)       scale(1);   }
+  50%  { transform: translate(50px,90px)  scale(1.25);}
+  100% { transform: translate(0,0)       scale(1);   }
+}
+@keyframes glow-pulse {
+  0%,100% { box-shadow: 0 0 30px rgba(139,92,246,.5), 0 0 60px rgba(109,40,217,.3); }
+  50%      { box-shadow: 0 0 50px rgba(139,92,246,.9), 0 0 100px rgba(109,40,217,.5); }
+}
+
+/* Sweep animation para cards com borda giratória */
+@keyframes sweep {
+  from { transform: translate(-50%,-50%) rotate(0deg); }
+  to   { transform: translate(-50%,-50%) rotate(360deg); }
 }
