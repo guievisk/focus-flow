@@ -225,7 +225,7 @@ export default function Dashboard() {
                   <YAxis hide allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ background: '#150e24', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
-                    formatter={(value: number) => [`${value} quiz${value === 1 ? '' : 'zes'}`, 'Feitos']}
+                    formatter={(value) => [`${value} quiz${value === 1 ? '' : 'zes'}`, 'Feitos']}
                   />
                   <Area type="monotone" dataKey="q" stroke="#8B5CF6" strokeWidth={2.5}
                     fill="url(#grad)" dot={{ fill: '#8B5CF6', r: 3.5, strokeWidth: 0 }} activeDot={{ r: 6 }}

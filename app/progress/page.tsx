@@ -171,7 +171,6 @@ export default function Progress() {
         }
       `}</style>
 
-      {/* header */}
       <div style={{ marginBottom: 24 }}>
         <h1 className="prog-title" style={{ fontWeight: 800, color: 'var(--ink)', letterSpacing: '-.5px' }}>
           Meu progresso
@@ -181,7 +180,6 @@ export default function Progress() {
         </p>
       </div>
 
-      {/* stat cards */}
       <div className="prog-stats-grid" style={{ display: 'grid', marginBottom: 16 }}>
         {stats.map(({ label, value, Icon, c }, i) => (
           <SweepCard
@@ -211,7 +209,6 @@ export default function Progress() {
         ))}
       </div>
 
-      {/* gráficos */}
       <div className="prog-charts-grid" style={{ display: 'grid', marginBottom: 16 }}>
         <SweepCard radius={14} padding={20} duration={6} delay={-1.5} opacity={0.4}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 18, gap: 10 }}>
@@ -220,7 +217,7 @@ export default function Progress() {
           </div>
           {hasActivity ? (
             <div className="prog-chart-h">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                 <AreaChart data={weekData}>
                   <defs>
                     <linearGradient id="gxp" x1="0" y1="0" x2="0" y2="1">
@@ -232,7 +229,7 @@ export default function Progress() {
                   <YAxis hide allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ background: '#150e24', border: '1px solid rgba(147,51,255,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
-                    formatter={(v: number) => [`${v} XP`, 'Ganho']}
+                    formatter={(v) => [`${v} XP`, 'Ganho']}
                   />
                   <Area type="monotone" dataKey="xp" stroke="#7C3AED" strokeWidth={2}
                     fill="url(#gxp)" dot={{ fill: '#7C3AED', r: 3, strokeWidth: 0 }} />
@@ -251,13 +248,13 @@ export default function Progress() {
           </div>
           {hasActivity ? (
             <div className="prog-chart-h">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                 <BarChart data={weekData}>
                   <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#4A4A65' }} />
                   <YAxis hide allowDecimals={false} />
                   <Tooltip
                     contentStyle={{ background: '#150e24', border: '1px solid rgba(147,51,255,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
-                    formatter={(v: number) => [`${v} quiz${v === 1 ? '' : 'zes'}`, 'Feitos']}
+                    formatter={(v) => [`${v} quiz${v === 1 ? '' : 'zes'}`, 'Feitos']}
                   />
                   <Bar dataKey="q" fill="#7C3AED" radius={[6, 6, 0, 0]} opacity={0.85} />
                 </BarChart>
@@ -269,7 +266,6 @@ export default function Progress() {
         </SweepCard>
       </div>
 
-      {/* desempenho por tema */}
       <SweepCard radius={14} padding={0} duration={7} delay={-3.5} opacity={0.35} style={{ marginBottom: 16 }}>
         <div className="prog-card-padding">
           <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 18 }}>
@@ -308,7 +304,6 @@ export default function Progress() {
         </div>
       </SweepCard>
 
-      {/* conquistas */}
       <SweepCard radius={14} padding={0} duration={7} delay={-4.2} opacity={0.35}>
         <div className="prog-card-padding">
           <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 16 }}>

@@ -66,12 +66,11 @@ function extractStepContent(raw: string): StepContent | null {
   if (type === 'multiple-choice') {
     exercise.options = ex.options.map((o: any) => String(o))
     const idx = typeof ex.correctIndex === 'number' ? ex.correctIndex : 0
-    exercise.correctIndex = idx >= 0 && idx < exercise.options.length ? idx : 0
-    // guarda o texto da opção certa também (ajuda o check-answer)
+    exercise.correctIndex = idx >= 0 && idx < (exercise.options?.length ?? 0) ? idx : 0    // guarda o texto da opção certa também (ajuda o check-answer)
     exercise.expectedAnswer =
       typeof ex.expectedAnswer === 'string' && ex.expectedAnswer.trim()
         ? ex.expectedAnswer.trim()
-        : exercise.options[exercise.correctIndex]
+        : exercise.options?.[(exercise.correctIndex ?? 0)] ?? ''
   } else {
     exercise.expectedAnswer =
       typeof ex.expectedAnswer === 'string' ? ex.expectedAnswer.trim() : ''

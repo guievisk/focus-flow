@@ -451,7 +451,7 @@ export default function Study() {
                   {correct}/{total}
                 </div>
                 <div style={{ fontSize: 14, color: 'var(--ink-2)', marginBottom: 22 }}>
-                  {pctCorrect}% de acerto — {LEVELS[level].label}
+                  {pctCorrect}% de acerto — {level ? LEVELS[level].label : ''}
                 </div>
 
                 <div style={{
