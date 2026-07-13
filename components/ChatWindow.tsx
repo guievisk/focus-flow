@@ -143,7 +143,7 @@ export default function ChatWindow({
             borderRadius: 18,
             display: 'flex', flexDirection: 'column',
             overflow: 'hidden',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            boxShadow: '0 9px 12px rgba(0,0,0,0.5)',
           }}
         >
           {/* Header */}
@@ -151,13 +151,13 @@ export default function ChatWindow({
             padding: '14px 16px',
             borderBottom: '1px solid var(--p-line)',
             display: 'flex', alignItems: 'center', gap: 12,
-            background: 'linear-gradient(135deg, rgba(147,51,255,0.12), rgba(124,0,255,0.04))',
+            background: 'linear-gradient(135deg, rgba(122,0,255,0.12), rgba(124,0,255,0.04))',
           }}>
             <div style={{
               width: 38, height: 38, borderRadius: '50%',
               backgroundImage: friend.friendAvatar
                 ? `url(${friend.friendAvatar})`
-                : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
               backgroundSize: 'cover', backgroundPosition: 'center',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 13, fontWeight: 700, color: '#fff', flexShrink: 0,
@@ -206,7 +206,7 @@ export default function ChatWindow({
                       padding: '9px 13px',
                       borderRadius: isMine ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                       background: isMine
-                        ? 'linear-gradient(135deg, #9333FF, #7C00FF)'
+                        ? 'linear-gradient(135deg, #7A00FF, #5A00C4)'
                         : 'rgba(255,255,255,0.06)',
                       color: isMine ? '#fff' : 'var(--ink)',
                       fontSize: 14, lineHeight: 1.4,
@@ -253,7 +253,7 @@ export default function ChatWindow({
               disabled={!input.trim() || sending}
               style={{
                 width: 44, height: 44, borderRadius: '50%', border: 'none',
-                background: !input.trim() || sending ? 'rgba(147,51,255,0.25)' : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                background: !input.trim() || sending ? 'rgba(122,0,255,0.25)' : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                 color: '#fff', cursor: !input.trim() || sending ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,

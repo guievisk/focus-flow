@@ -6,7 +6,6 @@ import {
   useContext,
   useState,
   useEffect,
-  useRef,
   useCallback,
   useMemo,
   ReactNode,
@@ -105,21 +104,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadProfile])
 
   // Atualiza last_seen a cada 30s
+  const userId = user?.id
   useEffect(() => {
-    if (!user) return
+    if (!userId) return
 
     const updateLastSeen = () => {
       supabase
         .from('profiles')
         .update({ last_seen: new Date().toISOString() })
-        .eq('id', user.id)
+        .eq('id', userId)
         .then()
     }
 
     updateLastSeen()
     const interval = setInterval(updateLastSeen, 30000)
     return () => clearInterval(interval)
-  }, [user?.id])
+  }, [userId])
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()

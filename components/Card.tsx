@@ -14,7 +14,7 @@ export default function Card({
   const ref = useRef<HTMLDivElement>(null)
 
   /*
-   🧠 LINGUAGEM → React + eventos do mouse
+   LINGUAGEM → React + eventos do mouse
       Quando o mouse se move sobre o card, calculamos a
       posição relativa (x,y) e atualizamos as variáveis CSS
       --mx e --my. O brilho radial no ::after segue essa posição.

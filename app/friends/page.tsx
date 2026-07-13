@@ -13,6 +13,7 @@ import {
   Share2,
   Sparkles,
   MessageCircle,
+  AlertTriangle,
 } from 'lucide-react'
 import AppShell from '@/components/layout/AppShell'
 import ChatWindow from '@/components/ChatWindow'
@@ -46,6 +47,14 @@ export default function FriendsPage() {
   // Qual amigo tem o chat aberto (null = nenhum)
   const [chatFriend, setChatFriend] = useState<FriendWithProfile | null>(null)
 
+  // Relógio que avança sozinho — mantém o cálculo de "online" puro no render
+  // (nada de Date.now() durante a renderização) e faz a bolinha atualizar sozinha.
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000)
+    return () => clearInterval(id)
+  }, [])
+
   const isLoadingRef = useRef(false)
 
   const loadAll = useCallback(async () => {
@@ -69,6 +78,8 @@ export default function FriendsPage() {
   }, [userId])
 
   useEffect(() => {
+    // loadAll é assíncrono e só chama setState depois do await — não gera render em cascata.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (userId) loadAll()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
@@ -164,7 +175,7 @@ export default function FriendsPage() {
           style={{
             padding: 24,
             borderRadius: 16,
-            background: 'linear-gradient(135deg, rgba(147,51,255,0.12) 0%, rgba(124,0,255,0.06) 100%)',
+            background: 'linear-gradient(135deg, rgba(122,0,255,0.12) 0%, rgba(124,0,255,0.06) 100%)',
             border: '1px solid var(--p-line)',
             marginBottom: 18,
           }}
@@ -209,11 +220,11 @@ export default function FriendsPage() {
                 disabled={!myCode}
                 style={{
                   padding: '10px 16px', borderRadius: 100, border: 'none',
-                  background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                  background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                   color: '#fff', cursor: myCode ? 'pointer' : 'not-allowed',
                   fontSize: 13, fontWeight: 700, fontFamily: 'Inter',
                   display: 'flex', alignItems: 'center', gap: 6,
-                  boxShadow: '0 6px 18px rgba(147,51,255,0.35)',
+                  boxShadow: '0 6px 18px rgba(122,0,255,0.07)',
                 }}
               >
                 <Share2 size={14} />
@@ -234,7 +245,7 @@ export default function FriendsPage() {
           transition={{ delay: 0.2 }}
           style={{
             padding: 24, borderRadius: 16,
-            background: 'rgba(28,15,48,0.4)',
+            background: 'rgba(17,9,30,0.4)',
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255,255,255,0.06)',
             marginBottom: 18,
@@ -267,11 +278,11 @@ export default function FriendsPage() {
               disabled={!inputCode.trim() || sending}
               style={{
                 padding: '14px 20px', borderRadius: 12, border: 'none',
-                background: !inputCode.trim() ? 'rgba(147,51,255,0.2)' : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                background: !inputCode.trim() ? 'rgba(122,0,255,0.2)' : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                 color: '#fff', cursor: !inputCode.trim() || sending ? 'not-allowed' : 'pointer',
                 fontSize: 14, fontWeight: 700, fontFamily: "'Product Sans', sans-serif",
                 display: 'flex', alignItems: 'center', gap: 6,
-                boxShadow: !inputCode.trim() ? 'none' : '0 6px 18px rgba(147,51,255,0.35)',
+                boxShadow: !inputCode.trim() ? 'none' : '0 6px 18px rgba(122,0,255,0.16)',
               }}
             >
               {sending ? 'Enviando...' : 'Enviar'}
@@ -281,14 +292,14 @@ export default function FriendsPage() {
           <AnimatePresence>
             {sendError && (
               <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                style={{ color: '#ff6b9d', fontSize: 12, marginTop: 10 }}>
-                ⚠ {sendError}
+                style={{ color: '#FF4D8D', fontSize: 12, marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <AlertTriangle size={13} strokeWidth={2.2} /> {sendError}
               </motion.div>
             )}
             {sendSuccess && (
               <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                style={{ color: '#10B981', fontSize: 12, marginTop: 10 }}>
-                ✓ Solicitação enviada!
+                style={{ color: '#00C97B', fontSize: 12, marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Check size={13} strokeWidth={2.6} /> Solicitação enviada!
               </motion.div>
             )}
           </AnimatePresence>
@@ -303,7 +314,7 @@ export default function FriendsPage() {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {recebidos.map((f) => (
-                <FriendCard key={f.friendshipId} friend={f} type="received"
+                <FriendCard key={f.friendshipId} friend={f} type="received" now={now}
                   onAccept={() => handleAccept(f.friendshipId)}
                   onRemove={() => handleRemove(f.friendshipId)} />
               ))}
@@ -325,7 +336,7 @@ export default function FriendsPage() {
           ) : aceitos.length === 0 ? (
             <div style={{
               padding: 32, borderRadius: 14,
-              background: 'rgba(28,15,48,0.3)',
+              background: 'rgba(17,9,30,0.3)',
               border: '1px dashed var(--p-line)',
               textAlign: 'center', color: 'var(--ink-3)', fontSize: 13,
             }}>
@@ -334,7 +345,7 @@ export default function FriendsPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {aceitos.map((f) => (
-                <FriendCard key={f.friendshipId} friend={f} type="accepted"
+                <FriendCard key={f.friendshipId} friend={f} type="accepted" now={now}
                   onChat={() => setChatFriend(f)}
                   onRemove={() => handleRemove(f.friendshipId)} />
               ))}
@@ -351,7 +362,7 @@ export default function FriendsPage() {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {enviados.map((f) => (
-                <FriendCard key={f.friendshipId} friend={f} type="sent"
+                <FriendCard key={f.friendshipId} friend={f} type="sent" now={now}
                   onRemove={() => handleRemove(f.friendshipId)} />
               ))}
             </div>
@@ -368,18 +379,19 @@ export default function FriendsPage() {
 }
 
 function FriendCard({
-  friend, type, onAccept, onChat, onRemove,
+  friend, type, now, onAccept, onChat, onRemove,
 }: {
   friend: FriendWithProfile
   type: 'accepted' | 'received' | 'sent'
+  now: number
   onAccept?: () => void
   onChat?: () => void
   onRemove: () => void
 }) {
   const initials = friend.friendName.slice(0, 2).toUpperCase()
 
-  const isOnline = type === 'accepted' && friend.lastSeen &&
-    (Date.now() - new Date(friend.lastSeen).getTime()) < 60000
+  const isOnline = type === 'accepted' && !!friend.lastSeen &&
+    (now - new Date(friend.lastSeen).getTime()) < 60000
 
   return (
     <motion.div
@@ -388,7 +400,7 @@ function FriendCard({
       exit={{ opacity: 0 }}
       style={{
         padding: 14, borderRadius: 12,
-        background: 'rgba(28,15,48,0.4)',
+        background: 'rgba(17,9,30,0.4)',
         border: '1px solid rgba(255,255,255,0.06)',
         display: 'flex', alignItems: 'center', gap: 12,
       }}
@@ -399,7 +411,7 @@ function FriendCard({
           width: 42, height: 42, borderRadius: '50%',
           backgroundImage: friend.friendAvatar
             ? `url(${friend.friendAvatar})`
-            : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+            : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
           backgroundSize: 'cover', backgroundPosition: 'center',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 14, fontWeight: 700, color: '#fff',
@@ -411,9 +423,9 @@ function FriendCard({
           <div style={{
             position: 'absolute', bottom: -2, right: -2,
             width: 14, height: 14, borderRadius: '50%',
-            background: '#10B981',
-            border: '2px solid rgba(28,15,48,1)',
-            boxShadow: '0 0 6px rgba(16,185,129,0.6)',
+            background: '#00C97B',
+            border: '2px solid rgba(17,9,30,1)',
+            boxShadow: '0 0 6px rgba(16,185,129,0.27)',
           }} />
         )}
       </div>
@@ -422,8 +434,13 @@ function FriendCard({
         <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
           {friend.friendName}
         </div>
-        <div style={{ fontSize: 11, color: isOnline ? '#10B981' : 'var(--ink-3)', marginTop: 2 }}>
-          {type === 'accepted' && (isOnline ? '● Online' : 'Amigo')}
+        <div style={{ fontSize: 11, color: isOnline ? '#00C97B' : 'var(--ink-3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+          {type === 'accepted' && (isOnline ? (
+            <>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#00C97B', flexShrink: 0 }} />
+              Online
+            </>
+          ) : 'Amigo')}
           {type === 'received' && 'Quer te adicionar'}
           {type === 'sent' && 'Aguardando aceitar'}
         </div>
@@ -434,7 +451,7 @@ function FriendCard({
           <motion.button whileTap={{ scale: 0.95 }} onClick={onAccept}
             style={{
               padding: '8px 14px', borderRadius: 100, border: 'none',
-              background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+              background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
               color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'Inter',
             }}>
             Aceitar
@@ -445,10 +462,10 @@ function FriendCard({
             title="Conversar"
             style={{
               padding: 8, borderRadius: '50%', border: 'none',
-              background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+              background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
               color: '#fff', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(147,51,255,0.3)',
+              boxShadow: '0 4px 12px rgba(122,0,255,0.06)',
             }}>
             <MessageCircle size={16} />
           </motion.button>

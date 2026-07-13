@@ -27,30 +27,37 @@ function extractStepContent(raw: string): StepContent | null {
     cleaned = cleaned.replace(/^```(json)?/i, '').replace(/```$/i, '').trim()
   }
 
-  let parsed: any
+  let parsedRaw: unknown
   try {
-    parsed = JSON.parse(cleaned)
+    parsedRaw = JSON.parse(cleaned)
   } catch {
     return null
   }
 
+  if (!parsedRaw || typeof parsedRaw !== 'object') return null
+  let parsed = parsedRaw as Record<string, unknown>
+
   // Às vezes o modelo embrulha em { content: {...} }
-  if (parsed.content && typeof parsed.content === 'object' && parsed.content.explanation) {
-    parsed = parsed.content
+  if (
+    parsed.content &&
+    typeof parsed.content === 'object' &&
+    (parsed.content as Record<string, unknown>).explanation
+  ) {
+    parsed = parsed.content as Record<string, unknown>
   }
 
   const explanation =
     typeof parsed.explanation === 'string' ? parsed.explanation.trim() : ''
   if (!explanation) return null
 
-  const ex = parsed.exercise
+  const ex = parsed.exercise as Record<string, unknown> | undefined
   if (!ex || typeof ex !== 'object' || !ex.question) return null
 
   // examples → array de strings limpas
   const examples: string[] = Array.isArray(parsed.examples)
-    ? parsed.examples
-        .filter((e: any) => typeof e === 'string' && e.trim())
-        .map((e: string) => e.trim())
+    ? (parsed.examples as unknown[])
+        .filter((e): e is string => typeof e === 'string' && e.trim() !== '')
+        .map((e) => e.trim())
     : []
 
   // Normaliza o exercício. Se tem options válidas → múltipla escolha; senão → texto livre.
@@ -64,7 +71,7 @@ function extractStepContent(raw: string): StepContent | null {
   }
 
   if (type === 'multiple-choice') {
-    exercise.options = ex.options.map((o: any) => String(o))
+    exercise.options = (ex.options as unknown[]).map((o) => String(o))
     const idx = typeof ex.correctIndex === 'number' ? ex.correctIndex : 0
     exercise.correctIndex = idx >= 0 && idx < (exercise.options?.length ?? 0) ? idx : 0    // guarda o texto da opção certa também (ajuda o check-answer)
     exercise.expectedAnswer =

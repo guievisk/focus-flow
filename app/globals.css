@@ -6,21 +6,21 @@
 
 :root {
   /* Roxo — acentos (botões, bordas, ícones) */
-  --p:      #9333FF;
-  --p2:     #7C00FF;
-  --p3:     #B57BFF;
-  --p-soft: rgba(147,51,255,0.12);
-  --p-line: rgba(147,51,255,0.30);
+  --p:      #7A00FF;
+  --p2:     #5A00C4;
+  --p3:     #A64DFF;
+  --p-soft: rgba(122,0,255,0.12);
+  --p-line: rgba(122,0,255,0.30);
 
   /* Fundos */
-  --bg:     #0B0612;
-  --bg2:    #140A22;
-  --card:   rgba(28,15,48,0.55);
+  --bg:     #050308;
+  --bg2:    #0A0514;
+  --card:   rgba(14,8,24,0.86);   /* quase sólido: superfície lida como camada, não como véu */
 
   /* Texto — cinza NEUTRO (sem tom roxo) */
-  --ink:    #F0F0F2;   /* principal — branco neutro */
-  --ink-2:  #A3A3AE;   /* secundário — cinza médio */
-  --ink-3:  #6B6B78;   /* terciário — cinza escuro */
+  --ink:    #F8F8FA;   /* principal — branco neutro */
+  --ink-2:  #C4C4CE;   /* secundário — cinza médio */
+  --ink-3:  #8C8C99;   /* terciário — cinza escuro */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,16 +36,17 @@ body {
 h1,h2,h3,h4,h5 { font-family: 'Product Sans', sans-serif; letter-spacing: -0.02em; }
 
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.4); border-radius: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(110,40,224,0.4); border-radius: 8px; }
 
 /* ── Card com contorno gradiente animado no hover ── */
 .glass-card {
   position: relative;
   background: var(--card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 18px;
-  border: 1px solid rgba(139,92,246,0.12);
+  /* Borda visível é o que separa a superfície do fundo agora que não há halo. */
+  border: 1px solid rgba(122,0,255,0.28);
   transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
   overflow: hidden;
 }
@@ -54,14 +55,15 @@ h1,h2,h3,h4,h5 { font-family: 'Product Sans', sans-serif; letter-spacing: -0.02e
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(143,92,247,0.8), transparent);
   opacity: 0;
   transition: opacity .35s;
 }
 .glass-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(139,92,246,0.4);
-  box-shadow: 0 12px 40px rgba(123, 91, 173, 0.25), 0 0 0 1px rgba(139,92,246,0.15);
+  border-color: rgba(122,0,255,0.65);
+  /* Profundidade vem de sombra PRETA (não de halo roxo borrado) + anel nítido. */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(122,0,255,0.35);
 }
 .glass-card:hover::before { opacity: 1; }
 
@@ -69,7 +71,7 @@ h1,h2,h3,h4,h5 { font-family: 'Product Sans', sans-serif; letter-spacing: -0.02e
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(400px circle at var(--mx,50%) var(--my,50%), rgba(139,92,246,0.12), transparent 40%);
+  background: radial-gradient(400px circle at var(--mx,50%) var(--my,50%), rgba(110,40,224,0.12), transparent 40%);
   opacity: 0;
   transition: opacity .35s;
   pointer-events: none;
@@ -95,8 +97,8 @@ h1,h2,h3,h4,h5 { font-family: 'Product Sans', sans-serif; letter-spacing: -0.02e
   100% { transform: translate(0,0)       scale(1);   }
 }
 @keyframes glow-pulse {
-  0%,100% { box-shadow: 0 0 30px rgba(139,92,246,.5), 0 0 60px rgba(109,40,217,.3); }
-  50%      { box-shadow: 0 0 50px rgba(139,92,246,.9), 0 0 100px rgba(109,40,217,.5); }
+  0%,100% { box-shadow: 0 0 14px rgba(110,40,224,0.23), 0 0 27px rgba(109,40,217,0.14); }
+  50%      { box-shadow: 0 0 23px rgba(110,40,224,0.41), 0 0 45px rgba(109,40,217,0.23); }
 }
 
 /* Sweep animation para cards com borda giratória */

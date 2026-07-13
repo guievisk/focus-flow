@@ -19,7 +19,7 @@ function extractSteps(raw: string): LessonStep[] | null {
     cleaned = cleaned.replace(/^```(json)?/i, '').replace(/```$/i, '').trim()
   }
 
-  let parsed: any
+  let parsed: unknown
   try {
     parsed = JSON.parse(cleaned)
   } catch {
@@ -27,23 +27,26 @@ function extractSteps(raw: string): LessonStep[] | null {
   }
 
   // Acha o array, tolerando formatos diferentes
-  let arr: any = null
+  let arr: unknown[] | null = null
   if (Array.isArray(parsed)) {
     arr = parsed // modelo devolveu o array direto
-  } else if (Array.isArray(parsed.steps)) {
-    arr = parsed.steps // formato esperado
-  } else if (parsed.steps && typeof parsed.steps === 'object') {
-    arr = [parsed.steps] // devolveu um objeto só
-  } else {
-    // procura qualquer propriedade que seja array
-    const arrayKey = Object.keys(parsed).find((k) => Array.isArray(parsed[k]))
-    if (arrayKey) arr = parsed[arrayKey]
+  } else if (parsed && typeof parsed === 'object') {
+    const obj = parsed as Record<string, unknown>
+    if (Array.isArray(obj.steps)) {
+      arr = obj.steps // formato esperado
+    } else if (obj.steps && typeof obj.steps === 'object') {
+      arr = [obj.steps] // devolveu um objeto só
+    } else {
+      // procura qualquer propriedade que seja array
+      const arrayKey = Object.keys(obj).find((k) => Array.isArray(obj[k]))
+      if (arrayKey) arr = obj[arrayKey] as unknown[]
+    }
   }
 
   if (!Array.isArray(arr) || arr.length === 0) return null
 
   // Normaliza cada step (garante os campos, sem quebrar se faltar algo)
-  const steps: LessonStep[] = arr
+  const steps: LessonStep[] = (arr as Record<string, unknown>[])
     .filter((s) => s && (s.title || s.description))
     .map((s) => ({
       title: String(s.title || 'Etapa').slice(0, 80),

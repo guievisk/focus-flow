@@ -6,21 +6,12 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tool
 import { Activity, Brain, Zap, Star, TrendingUp, Target, Award } from 'lucide-react'
 import AppShell from '@/components/layout/AppShell'
 import { useAuth } from '@/components/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { getDataLayer } from '@/lib/data'
+import type { DailyXp, QuizResult } from '@/lib/data/types'
 import SweepCard from '@/components/SweepCard'
 
-const ACCENT = '#9333FF'
+const ACCENT = '#7A00FF'
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-
-type QuizResult = {
-  id: string
-  topic: string
-  difficulty: string
-  total_questions: number
-  correct_answers: number
-  xp_earned: number
-  created_at: string
-}
 
 function localDateKey(d: Date): string {
   const y = d.getFullYear()
@@ -37,31 +28,26 @@ function formatHours(totalMinutes: number): string {
   return `${h}h ${m}min`
 }
 
-function buildWeekData(quizzes: QuizResult[]) {
-  const counts: Record<string, { q: number; xp: number }> = {}
+// XP vem do ledger xp_events (getDailyXp) — inclui quiz, sessão e lição;
+// a contagem de quizzes por dia continua vindo dos resultados de quiz.
+function buildWeekData(dailyXp: DailyXp[], quizzes: QuizResult[]) {
+  const quizCounts: Record<string, number> = {}
   for (const q of quizzes) {
-    const key = localDateKey(new Date(q.created_at))
-    if (!counts[key]) counts[key] = { q: 0, xp: 0 }
-    counts[key].q += 1
-    counts[key].xp += q.xp_earned || 0
+    const key = localDateKey(new Date(q.createdAt))
+    quizCounts[key] = (quizCounts[key] ?? 0) + 1
   }
-  const out: { d: string; q: number; xp: number }[] = []
-  const today = new Date()
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(today)
-    date.setDate(today.getDate() - i)
-    const entry = counts[localDateKey(date)] || { q: 0, xp: 0 }
-    out.push({ d: WEEKDAYS[date.getDay()], q: entry.q, xp: entry.xp })
-  }
-  return out
+  return dailyXp.map((day) => {
+    const date = new Date(`${day.date}T00:00:00`)
+    return { d: WEEKDAYS[date.getDay()], q: quizCounts[day.date] ?? 0, xp: day.xp }
+  })
 }
 
 function buildTopicStats(quizzes: QuizResult[], topN = 5) {
   const grouped: Record<string, { totalCorrect: number; totalQuestions: number; count: number }> = {}
   for (const q of quizzes) {
     if (!grouped[q.topic]) grouped[q.topic] = { totalCorrect: 0, totalQuestions: 0, count: 0 }
-    grouped[q.topic].totalCorrect += q.correct_answers
-    grouped[q.topic].totalQuestions += q.total_questions
+    grouped[q.topic].totalCorrect += q.correctAnswers
+    grouped[q.topic].totalQuestions += q.totalQuestions
     grouped[q.topic].count += 1
   }
   return Object.entries(grouped)
@@ -77,31 +63,36 @@ function buildTopicStats(quizzes: QuizResult[], topN = 5) {
 export default function Progress() {
   const { profile, user } = useAuth()
   const [quizzes, setQuizzes] = useState<QuizResult[]>([])
+  const [dailyXp, setDailyXp] = useState<DailyXp[]>([])
   const [loading, setLoading] = useState(true)
 
+  const userId = user?.id
+
   useEffect(() => {
-    if (!user) { setLoading(false); return }
+    // Sem usuário não há o que buscar — apenas encerra o loading. Não é render em cascata.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!userId) { setLoading(false); return }
     let active = true
     ;(async () => {
-      try {
-        const { data, error } = await supabase
-          .from('quiz_results')
-          .select('id, topic, difficulty, total_questions, correct_answers, xp_earned, created_at')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(500)
-        if (!active) return
-        if (error) throw error
-        setQuizzes(data || [])
-      } catch (e) {
-        console.error('Erro ao carregar quizzes:', e)
-        if (active) setQuizzes([])
-      } finally {
-        if (active) setLoading(false)
-      }
+      const dl = getDataLayer()
+      // Fontes independentes: se o ledger de XP falhar, os quizzes ainda aparecem
+      // (e vice-versa) em vez da tela inteira ficar vazia.
+      const [quizzesResult, dailyResult] = await Promise.allSettled([
+        dl.quizzes.listRecent(userId, 365),
+        dl.xp.getDailyXp(userId, 7),
+      ])
+      if (!active) return
+
+      if (quizzesResult.status === 'fulfilled') setQuizzes(quizzesResult.value)
+      else console.error('Erro ao carregar quizzes:', quizzesResult.reason)
+
+      if (dailyResult.status === 'fulfilled') setDailyXp(dailyResult.value)
+      else console.error('Erro ao carregar XP diário:', dailyResult.reason)
+
+      setLoading(false)
     })()
     return () => { active = false }
-  }, [user?.id])
+  }, [userId])
 
   const xp = profile?.xp ?? 0
   const totalMinutes = profile?.total_minutes ?? 0
@@ -110,18 +101,18 @@ export default function Progress() {
 
   const averageScore = useMemo(() => {
     if (quizzes.length === 0) return 0
-    const totalCorrect = quizzes.reduce((s, q) => s + q.correct_answers, 0)
-    const totalQuestions = quizzes.reduce((s, q) => s + q.total_questions, 0)
+    const totalCorrect = quizzes.reduce((s, q) => s + q.correctAnswers, 0)
+    const totalQuestions = quizzes.reduce((s, q) => s + q.totalQuestions, 0)
     return totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0
   }, [quizzes])
 
   const perfectQuizzes = useMemo(
-    () => quizzes.filter((q) => q.total_questions > 0 && q.correct_answers === q.total_questions).length,
+    () => quizzes.filter((q) => q.totalQuestions > 0 && q.correctAnswers === q.totalQuestions).length,
     [quizzes]
   )
 
-  const weekData = useMemo(() => buildWeekData(quizzes), [quizzes])
-  const hasActivity = weekData.some((d) => d.q > 0)
+  const weekData = useMemo(() => buildWeekData(dailyXp, quizzes), [dailyXp, quizzes])
+  const hasActivity = weekData.some((d) => d.q > 0 || d.xp > 0)
   const topicStats = useMemo(() => buildTopicStats(quizzes), [quizzes])
 
   const achievements = useMemo(() => [
@@ -135,9 +126,9 @@ export default function Progress() {
 
   const stats = [
     { label: 'Total de quizzes', value: loading ? '—' : `${totalQuizzes}`,  Icon: Brain,      c: ACCENT     },
-    { label: 'Média de acertos', value: loading ? '—' : `${averageScore}%`, Icon: Target,     c: '#10B981'  },
-    { label: 'Horas de foco',    value: formatHours(totalMinutes),          Icon: Activity,   c: '#F59E0B'  },
-    { label: 'XP total',         value: xp.toLocaleString('pt-BR'),         Icon: TrendingUp, c: '#3B82F6'  },
+    { label: 'Média de acertos', value: loading ? '—' : `${averageScore}%`, Icon: Target,     c: '#00C97B'  },
+    { label: 'Horas de foco',    value: formatHours(totalMinutes),          Icon: Activity,   c: '#FFA800'  },
+    { label: 'XP total',         value: xp.toLocaleString('pt-BR'),         Icon: TrendingUp, c: '#2E6BFF'  },
   ]
 
   return (
@@ -221,18 +212,18 @@ export default function Progress() {
                 <AreaChart data={weekData}>
                   <defs>
                     <linearGradient id="gxp" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#7C3AED" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#6216D8" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#6216D8" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#4A4A65' }} />
+                  <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6A6A88' }} />
                   <YAxis hide allowDecimals={false} />
                   <Tooltip
-                    contentStyle={{ background: '#150e24', border: '1px solid rgba(147,51,255,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
+                    contentStyle={{ background: '#0B0616', border: '1px solid rgba(122,0,255,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
                     formatter={(v) => [`${v} XP`, 'Ganho']}
                   />
-                  <Area type="monotone" dataKey="xp" stroke="#7C3AED" strokeWidth={2}
-                    fill="url(#gxp)" dot={{ fill: '#7C3AED', r: 3, strokeWidth: 0 }} />
+                  <Area type="monotone" dataKey="xp" stroke="#6216D8" strokeWidth={2}
+                    fill="url(#gxp)" dot={{ fill: '#6216D8', r: 3, strokeWidth: 0 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -250,13 +241,13 @@ export default function Progress() {
             <div className="prog-chart-h">
               <ResponsiveContainer width="100%" height="100%" minHeight={150}>
                 <BarChart data={weekData}>
-                  <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#4A4A65' }} />
+                  <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6A6A88' }} />
                   <YAxis hide allowDecimals={false} />
                   <Tooltip
-                    contentStyle={{ background: '#150e24', border: '1px solid rgba(147,51,255,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
+                    contentStyle={{ background: '#0B0616', border: '1px solid rgba(122,0,255,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
                     formatter={(v) => [`${v} quiz${v === 1 ? '' : 'zes'}`, 'Feitos']}
                   />
-                  <Bar dataKey="q" fill="#7C3AED" radius={[6, 6, 0, 0]} opacity={0.85} />
+                  <Bar dataKey="q" fill="#6216D8" radius={[6, 6, 0, 0]} opacity={0.85} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -316,11 +307,11 @@ export default function Progress() {
                   key={title}
                   radius={12}
                   padding={0}
-                  accent="#FFD166"
+                  accent="#FFC93C"
                   opacity={0.5}
                   duration={4}
                   delay={-i * 0.4}
-                  background="rgba(124,58,237,.1)"
+                  background="rgba(98,22,216,.1)"
                 >
                   <div className="prog-conquista-padding" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
@@ -328,7 +319,7 @@ export default function Progress() {
                       background: 'rgba(255, 209, 102, .15)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      <Icon size={20} color="#FFD166" strokeWidth={1.8} />
+                      <Icon size={20} color="#FFC93C" strokeWidth={1.8} />
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{title}</div>

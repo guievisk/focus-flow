@@ -55,9 +55,9 @@ const quizHistory = [
 
 // Cores e ícones dos tipos de alerta
 const alertStyle = {
-  warning: { color: '#F59E0B', bg: 'rgba(245,158,11,.1)',  border: 'rgba(245,158,11,.25)',  Icon: AlertCircle },
-  success: { color: '#10B981', bg: 'rgba(16,185,129,.1)',  border: 'rgba(16,185,129,.25)',  Icon: CheckCircle },
-  info:    { color: '#3B82F6', bg: 'rgba(59,130,246,.1)',  border: 'rgba(59,130,246,.25)',  Icon: Info        },
+  warning: { color: '#FFA800', bg: 'rgba(245,158,11,.1)',  border: 'rgba(245,158,11,.25)',  Icon: AlertCircle },
+  success: { color: '#00C97B', bg: 'rgba(16,185,129,.1)',  border: 'rgba(16,185,129,.25)',  Icon: CheckCircle },
+  info:    { color: '#2E6BFF', bg: 'rgba(59,130,246,.1)',  border: 'rgba(59,130,246,.25)',  Icon: Info        },
 }
 
 export default function Parents() {
@@ -89,8 +89,8 @@ const avatarUrl =
 <div style={{
   ...card,
   marginBottom: 18,
-  background: 'linear-gradient(135deg, rgba(124,58,237,.15) 0%, rgba(124,58,237,.05) 100%)',
-  border: '1px solid rgba(124,58,237,.2)',
+  background: 'linear-gradient(135deg, rgba(98,22,216,.15) 0%, rgba(98,22,216,.05) 100%)',
+  border: '1px solid rgba(98,22,216,.2)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -103,7 +103,7 @@ const avatarUrl =
       borderRadius: '50%',
       backgroundImage: avatarUrl
         ? `url(${avatarUrl})`
-        : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+        : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
@@ -126,18 +126,18 @@ const avatarUrl =
   </div>
   {/* Indicador de status online */}
   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 8, background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.2)' }}>
-    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981' }} />
-    <span style={{ fontSize: 13, fontWeight: 600, color: '#10B981' }}>Estudando agora</span>
+    <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00C97B' }} />
+    <span style={{ fontSize: 13, fontWeight: 600, color: '#00C97B' }}>Estudando agora</span>
   </div>
 </div>
 
       {/* Cards de estatísticas */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 18 }}>
         {[
-          { label: 'Foco hoje',      value: '32 min', sub: 'Meta: 45 min', Icon: Clock,        c: '#7C3AED' },
-          { label: 'Quizzes feitos', value: '12',      sub: '+3 hoje',      Icon: CheckCircle,  c: '#10B981' },
-          { label: 'Média acertos',  value: '78%',     sub: 'Esta semana',  Icon: Target,       c: '#F59E0B' },
-          { label: 'Sequência',      value: '7 dias',  sub: 'Recorde: 12',  Icon: Activity,     c: '#EF4444' },
+          { label: 'Foco hoje',      value: '32 min', sub: 'Meta: 45 min', Icon: Clock,        c: '#6216D8' },
+          { label: 'Quizzes feitos', value: '12',      sub: '+3 hoje',      Icon: CheckCircle,  c: '#00C97B' },
+          { label: 'Média acertos',  value: '78%',     sub: 'Esta semana',  Icon: Target,       c: '#FFA800' },
+          { label: 'Sequência',      value: '7 dias',  sub: 'Recorde: 12',  Icon: Activity,     c: '#FF3B3B' },
         ].map(({ label, value, sub, Icon, c }, i) => (
           <div key={i} style={card}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
@@ -163,10 +163,10 @@ const avatarUrl =
           </div>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={weekData}>
-              <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#4A4A65' }} />
+              <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6A6A88' }} />
               <YAxis hide />
               <Tooltip contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }} />
-              <Bar dataKey="min" fill="#7C3AED" radius={[6, 6, 0, 0]} opacity={0.85} />
+              <Bar dataKey="min" fill="#6216D8" radius={[6, 6, 0, 0]} opacity={0.85} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -181,14 +181,14 @@ const avatarUrl =
             <AreaChart data={hourData}>
               <defs>
                 <linearGradient id="gh" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#10B981" stopOpacity={.3} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                  <stop offset="5%"  stopColor="#00C97B" stopOpacity={.3} />
+                  <stop offset="95%" stopColor="#00C97B" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis dataKey="h" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#4A4A65' }} />
+              <XAxis dataKey="h" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6A6A88' }} />
               <YAxis hide />
               <Tooltip contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }} />
-              <Area type="monotone" dataKey="min" stroke="#10B981" strokeWidth={2} fill="url(#gh)" dot={false} />
+              <Area type="monotone" dataKey="min" stroke="#00C97B" strokeWidth={2} fill="url(#gh)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -202,8 +202,8 @@ const avatarUrl =
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Alertas de monitoramento</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, background: 'rgba(245,158,11,.1)' }}>
-              <Bell size={12} color="#F59E0B" />
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#F59E0B' }}>2 novos</span>
+              <Bell size={12} color="#FFA800" />
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#FFA800' }}>2 novos</span>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -235,7 +235,7 @@ const avatarUrl =
             {quizHistory.map((q, i) => {
               // Calcula a cor da nota baseado no percentual de acerto
               const pct = q.score / q.total
-              const color = pct >= 0.8 ? '#10B981' : pct >= 0.6 ? '#F59E0B' : '#EF4444'
+              const color = pct >= 0.8 ? '#00C97B' : pct >= 0.6 ? '#FFA800' : '#FF3B3B'
               return (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -255,12 +255,12 @@ const avatarUrl =
           {/* Resumo de segurança */}
           <div style={{
             marginTop: 16, padding: '12px 14px', borderRadius: 10,
-            background: 'rgba(124,58,237,.08)', border: '1px solid rgba(124,58,237,.15)',
+            background: 'rgba(98,22,216,.08)', border: '1px solid rgba(98,22,216,.15)',
             display: 'flex', alignItems: 'center', gap: 10,
           }}>
-            <Shield size={16} color="#A78BFA" />
+            <Shield size={16} color="#8F5CF7" />
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#A78BFA' }}>Monitoramento ativo</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#8F5CF7' }}>Monitoramento ativo</div>
               <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 2 }}>Última atualização: agora</div>
             </div>
           </div>

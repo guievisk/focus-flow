@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import imageCompression from 'browser-image-compression'
-import { Camera, Loader2 } from 'lucide-react'
+import { Camera, Loader2, AlertTriangle } from 'lucide-react'
 
 type Props = {
   userId: string
@@ -152,7 +152,7 @@ export default function AvatarUpload({
           borderRadius: '50%',
           backgroundImage: currentAvatarUrl
             ? `url(${currentAvatarUrl})`
-            : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+            : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -211,8 +211,8 @@ export default function AvatarUpload({
       />
 
       {error && (
-        <div style={{ color: '#ff6b9d', fontSize: 12, marginTop: 8 }}>
-          ⚠ {error}
+        <div style={{ color: '#FF4D8D', fontSize: 12, marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <AlertTriangle size={13} strokeWidth={2.2} /> {error}
         </div>
       )}
 

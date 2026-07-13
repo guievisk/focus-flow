@@ -1,12 +1,17 @@
 // app/study-session/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, ArrowRight, Brain, Target, Zap } from 'lucide-react'
+import {
+  Sparkles, ArrowRight, Brain, Target, Zap,
+  Sprout, Rocket, Clock, Lightbulb, AlertTriangle, Check,
+  type LucideIcon,
+} from 'lucide-react'
 import AppShell from '@/components/layout/AppShell'
 import { useAuth } from '@/components/AuthContext'
-import { addStudyMinutes } from '@/lib/streak'
+import { getDataLayer } from '@/lib/data'
+import { isRetryable } from '@/lib/data/errors'
 import FlowMascot from '@/components/FlowMascot'
 
 type Step =
@@ -44,10 +49,10 @@ type StepContent = {
   exercise: Exercise
 }
 
-const LEVEL_DATA: Record<Level, { desc: string; emoji: string; color: string }> = {
-  iniciante:     { desc: 'Vamos começar do básico, no seu ritmo. Sem pressa.',     emoji: '🌱', color: '#9333FF' },
-  intermediario: { desc: 'Você já tem uma boa base. Vamos refinar os detalhes.',    emoji: '⚡', color: '#9333FF' },
-  avancado:      { desc: 'Você manda bem! Vamos focar nos pontos mais sofisticados.', emoji: '🚀', color: '#9333FF' },
+const LEVEL_DATA: Record<Level, { desc: string; Icon: LucideIcon; color: string }> = {
+  iniciante:     { desc: 'Vamos começar do básico, no seu ritmo. Sem pressa.',     Icon: Sprout, color: '#7A00FF' },
+  intermediario: { desc: 'Você já tem uma boa base. Vamos refinar os detalhes.',    Icon: Zap,    color: '#7A00FF' },
+  avancado:      { desc: 'Você manda bem! Vamos focar nos pontos mais sofisticados.', Icon: Rocket, color: '#7A00FF' },
 }
 
 export default function StudySessionPage() {
@@ -68,6 +73,10 @@ export default function StudySessionPage() {
   const [loadingFeedback, setLoadingFeedback] = useState(false)
   const [earnedXp, setEarnedXp] = useState(0)
   const [earnedMinutes, setEarnedMinutes] = useState(0)
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'retry' | 'failed'>('idle')
+  // Chave de idempotência: UMA por sessão concluída — retries reutilizam a
+  // mesma chave e o servidor nunca credita XP/minutos duas vezes (FR-004).
+  const sessionKeyRef = useRef<string | null>(null)
   const [levelLabels, setLevelLabels] = useState({
     beginner: 'Iniciante', intermediate: 'Intermediário', advanced: 'Avançado',
   })
@@ -217,11 +226,7 @@ export default function StudySessionPage() {
         const xpGained = lessonSteps.length * 10
         setEarnedXp(xpGained)
         setEarnedMinutes(totalMinutes)
-        if (user) {
-          addStudyMinutes(user.id, totalMinutes, xpGained)
-            .then(() => refreshProfile())
-            .catch((e) => console.error('Erro ao salvar progresso:', e))
-        }
+        saveSessionProgress(totalMinutes, xpGained)
         setStep('lesson-done')
       } else {
         setCurrentStepIndex(nextIndex)
@@ -241,8 +246,29 @@ export default function StudySessionPage() {
     await loadStepContent(currentStepIndex, nextAttempt)
   }
 
+  async function saveSessionProgress(minutes: number, xp: number) {
+    if (!user || minutes <= 0 || xp <= 0) return
+    if (!sessionKeyRef.current) sessionKeyRef.current = crypto.randomUUID()
+
+    setSaveState('saving')
+    try {
+      await getDataLayer().streak.recordStudyActivity({
+        minutes,
+        xp,
+        idempotencyKey: sessionKeyRef.current,
+      })
+      await refreshProfile()
+      setSaveState('saved')
+    } catch (e) {
+      console.error('Erro ao salvar progresso:', e)
+      setSaveState(isRetryable(e) ? 'retry' : 'failed')
+    }
+  }
+
   function handleReset() {
     setStep('topic')
+    setSaveState('idle')
+    sessionKeyRef.current = null
     setTopic('')
     setQuestions([])
     setCurrentQ(0)
@@ -336,7 +362,7 @@ export default function StudySessionPage() {
             >
               O que vamos<br />
               <span style={{
-                background: 'linear-gradient(135deg, #B57BFF, #9333FF)',
+                background: 'linear-gradient(135deg, #A64DFF, #7A00FF)',
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
               }}>
                 estudar hoje?
@@ -352,8 +378,11 @@ export default function StudySessionPage() {
             </motion.p>
 
             {errorMsg && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: '#ff6b9d', fontSize: 13, marginBottom: 16 }}>
-                ⚠ {errorMsg}
+              <motion.p
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                style={{ color: '#FF4D8D', fontSize: 13, marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <AlertTriangle size={14} strokeWidth={2.2} /> {errorMsg}
               </motion.p>
             )}
 
@@ -382,12 +411,12 @@ export default function StudySessionPage() {
               className="ses-generate-btn"
               style={{
                 width: '100%', borderRadius: 14, border: 'none',
-                background: !topic.trim() ? 'rgba(147,51,255,0.2)' : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                background: !topic.trim() ? 'rgba(122,0,255,0.2)' : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                 color: '#fff', fontWeight: 700,
                 cursor: !topic.trim() ? 'not-allowed' : 'pointer',
                 fontFamily: "'Product Sans', sans-serif",
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                boxShadow: !topic.trim() ? 'none' : '0 12px 32px rgba(147,51,255,0.35)',
+                boxShadow: !topic.trim() ? 'none' : '0 12px 14px rgba(122,0,255,0.16)',
                 transition: 'all 0.2s',
               }}
             >
@@ -458,8 +487,8 @@ export default function StudySessionPage() {
                   transition={{ duration: 0.4 }}
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(90deg, #7C00FF, #B57BFF)',
-                    borderRadius: 100, boxShadow: '0 0 12px rgba(147,51,255,0.6)',
+                    background: 'linear-gradient(90deg, #5A00C4, #A64DFF)',
+                    borderRadius: 100, boxShadow: '0 0 12px rgba(122,0,255,0.27)',
                   }}
                 />
               </div>
@@ -488,14 +517,14 @@ export default function StudySessionPage() {
                     style={{
                       borderRadius: 14,
                       border: isSelected ? '1px solid var(--p)' : '1px solid rgba(255,255,255,0.08)',
-                      background: isSelected ? 'var(--p-soft)' : 'rgba(28,15,48,0.4)',
+                      background: isSelected ? 'var(--p-soft)' : 'rgba(17,9,30,0.4)',
                       color: 'var(--ink)',
                       cursor: selectedOption !== null ? 'default' : 'pointer',
                       textAlign: 'left',
                       fontFamily: "'Product Sans', sans-serif",
                       display: 'flex', alignItems: 'center', gap: 12,
                       transition: 'all 0.2s',
-                      boxShadow: isSelected ? '0 8px 24px rgba(147,51,255,0.25)' : 'none',
+                      boxShadow: isSelected ? '0 8px 11px rgba(122,0,255,0.11)' : 'none',
                     }}
                   >
                     <div style={{
@@ -530,12 +559,15 @@ export default function StudySessionPage() {
               style={{
                 width: 100, height: 100, margin: '0 auto 22px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 50, boxShadow: '0 20px 60px rgba(147,51,255,0.45)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
               }}
             >
-              {LEVEL_DATA[level].emoji}
+              {(() => {
+                const LevelIcon = LEVEL_DATA[level].Icon
+                return <LevelIcon size={44} strokeWidth={1.75} color="#fff" />
+              })()}
             </motion.div>
 
             <motion.p
@@ -550,7 +582,7 @@ export default function StudySessionPage() {
               className="ses-h1-level"
               style={{
                 fontWeight: 900, marginBottom: 16,
-                background: 'linear-gradient(135deg, #B57BFF, #9333FF)',
+                background: 'linear-gradient(135deg, #A64DFF, #7A00FF)',
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                 letterSpacing: '-0.02em',
               }}
@@ -587,11 +619,11 @@ export default function StudySessionPage() {
                 onClick={handleGeneratePlan}
                 style={{
                   padding: '12px 24px', borderRadius: 100, border: 'none',
-                  background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                  background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                   color: '#fff', cursor: 'pointer',
                   fontSize: 13.5, fontWeight: 700, fontFamily: "'Product Sans', sans-serif",
                   display: 'flex', alignItems: 'center', gap: 8,
-                  boxShadow: '0 12px 32px rgba(147,51,255,0.35)',
+                  boxShadow: '0 12px 14px rgba(122,0,255,0.07)',
                 }}
               >
                 Gerar plano de aula
@@ -637,7 +669,7 @@ export default function StudySessionPage() {
                 marginBottom: 8, letterSpacing: '-0.02em', lineHeight: 1.15,
               }}>
                 Vamos estudar <span style={{
-                  background: 'linear-gradient(135deg, #B57BFF, #9333FF)',
+                  background: 'linear-gradient(135deg, #A64DFF, #7A00FF)',
                   WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                 }}>{topic}</span>
               </h1>
@@ -656,17 +688,17 @@ export default function StudySessionPage() {
                   className="ses-plan-step-pad"
                   style={{
                     borderRadius: 14,
-                    background: 'rgba(28,15,48,0.4)',
+                    background: 'rgba(17,9,30,0.4)',
                     border: '1px solid rgba(255,255,255,0.06)',
                     display: 'flex', alignItems: 'flex-start',
                   }}
                 >
                   <div style={{
                     width: 36, height: 36, borderRadius: 10,
-                    background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                    background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 14, fontWeight: 800, color: '#fff',
-                    flexShrink: 0, boxShadow: '0 6px 16px rgba(147,51,255,0.3)',
+                    flexShrink: 0, boxShadow: '0 6px 16px rgba(122,0,255,0.06)',
                   }}>
                     {i + 1}
                   </div>
@@ -677,8 +709,8 @@ export default function StudySessionPage() {
                     <div style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.5, marginBottom: 6 }}>
                       {stepItem.description}
                     </div>
-                    <div style={{ fontSize: 12, color: 'var(--ink-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      ⏱ {stepItem.estimatedMinutes} min
+                    <div style={{ fontSize: 12, color: 'var(--ink-3)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Clock size={12} strokeWidth={2} /> {stepItem.estimatedMinutes} min
                     </div>
                   </div>
                 </motion.div>
@@ -703,11 +735,11 @@ export default function StudySessionPage() {
                 onClick={startLesson}
                 style={{
                   padding: '12px 24px', borderRadius: 100, border: 'none',
-                  background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                  background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                   color: '#fff', cursor: 'pointer',
                   fontSize: 13.5, fontWeight: 700, fontFamily: "'Product Sans', sans-serif",
                   display: 'flex', alignItems: 'center', gap: 8,
-                  boxShadow: '0 12px 32px rgba(147,51,255,0.35)',
+                  boxShadow: '0 12px 14px rgba(122,0,255,0.07)',
                 }}
               >
                 Começar a aula
@@ -755,14 +787,14 @@ export default function StudySessionPage() {
                   initial={{ width: `${(currentStepIndex / lessonSteps.length) * 100}%` }}
                   animate={{ width: `${((currentStepIndex + 1) / lessonSteps.length) * 100}%` }}
                   transition={{ duration: 0.4 }}
-                  style={{ height: '100%', background: 'linear-gradient(90deg, #7C00FF, #B57BFF)', borderRadius: 100, boxShadow: '0 0 12px rgba(147,51,255,0.6)' }}
+                  style={{ height: '100%', background: 'linear-gradient(90deg, #5A00C4, #A64DFF)', borderRadius: 100, boxShadow: '0 0 12px rgba(122,0,255,0.27)' }}
                 />
               </div>
             </div>
 
             <div className="ses-card-pad" style={{
               borderRadius: 14,
-              background: 'rgba(28,15,48,0.4)',
+              background: 'rgba(17,9,30,0.4)',
               border: '1px solid rgba(255,255,255,0.06)',
               marginBottom: 16,
             }}>
@@ -807,7 +839,7 @@ export default function StudySessionPage() {
 
             <div className="ses-card-pad" style={{
               borderRadius: 14,
-              background: 'linear-gradient(135deg, rgba(147,51,255,0.08), rgba(124,0,255,0.04))',
+              background: 'linear-gradient(135deg, rgba(122,0,255,0.08), rgba(124,0,255,0.04))',
               border: '1px solid var(--p-line)',
               marginBottom: 16,
             }}>
@@ -832,7 +864,7 @@ export default function StudySessionPage() {
                         style={{
                           padding: '13px 16px', borderRadius: 12,
                           border: isSelected ? '1px solid var(--p)' : '1px solid rgba(255,255,255,0.08)',
-                          background: isSelected ? 'var(--p-soft)' : 'rgba(28,15,48,0.4)',
+                          background: isSelected ? 'var(--p-soft)' : 'rgba(17,9,30,0.4)',
                           color: 'var(--ink)', fontSize: 14, cursor: 'pointer',
                           textAlign: 'left',
                           fontFamily: "'Product Sans', sans-serif",
@@ -873,8 +905,8 @@ export default function StudySessionPage() {
                 />
               )}
 
-              <div style={{ marginTop: 14, fontSize: 12, color: 'var(--ink-3)', fontStyle: 'italic' }}>
-                💡 Dica: {stepContent.exercise.hint}
+              <div style={{ marginTop: 14, fontSize: 12, color: 'var(--ink-3)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Lightbulb size={13} strokeWidth={2} /> Dica: {stepContent.exercise.hint}
               </div>
             </div>
 
@@ -884,7 +916,7 @@ export default function StudySessionPage() {
               disabled={studentAnswer === null || studentAnswer === '' || loadingFeedback}
               style={{
                 width: '100%', padding: 15, borderRadius: 14, border: 'none',
-                background: studentAnswer === null || studentAnswer === '' ? 'rgba(147,51,255,0.2)' : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                background: studentAnswer === null || studentAnswer === '' ? 'rgba(122,0,255,0.2)' : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                 color: '#fff', fontSize: 15, fontWeight: 700,
                 cursor: studentAnswer === null || studentAnswer === '' ? 'not-allowed' : 'pointer',
                 fontFamily: "'Product Sans', sans-serif",
@@ -940,11 +972,11 @@ export default function StudySessionPage() {
               onClick={handleNextAction}
               style={{
                 padding: '14px 28px', borderRadius: 100, border: 'none',
-                background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                 color: '#fff', fontSize: 14.5, fontWeight: 700,
                 cursor: 'pointer', fontFamily: "'Product Sans', sans-serif",
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                boxShadow: '0 12px 32px rgba(147,51,255,0.35)',
+                boxShadow: '0 12px 14px rgba(122,0,255,0.07)',
               }}
             >
               {feedback.correct
@@ -977,7 +1009,7 @@ export default function StudySessionPage() {
               className="ses-h1-done"
               style={{
                 fontWeight: 900, marginBottom: 10,
-                background: 'linear-gradient(135deg, #B57BFF, #9333FF)',
+                background: 'linear-gradient(135deg, #A64DFF, #7A00FF)',
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
                 letterSpacing: '-0.02em',
               }}
@@ -1000,22 +1032,60 @@ export default function StudySessionPage() {
               style={{
                 display: 'inline-flex',
                 borderRadius: 100,
-                background: 'linear-gradient(135deg, rgba(147,51,255,0.15), rgba(124,0,255,0.08))',
+                background: 'linear-gradient(135deg, rgba(122,0,255,0.15), rgba(124,0,255,0.08))',
                 border: '1px solid var(--p-line)',
                 marginBottom: 26,
-                boxShadow: '0 8px 32px rgba(147,51,255,0.2)',
+                boxShadow: '0 8px 14px rgba(122,0,255,0.04)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>⚡</span>
+                <Zap size={20} strokeWidth={2} color="var(--p3)" />
                 <span className="ses-done-xp-num" style={{ fontWeight: 800, color: 'var(--ink)' }}>+{earnedXp} XP</span>
               </div>
               <div style={{ width: 1, background: 'var(--p-line)' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>⏱️</span>
+                <Clock size={20} strokeWidth={2} color="var(--p3)" />
                 <span className="ses-done-xp-num" style={{ fontWeight: 800, color: 'var(--ink)' }}>+{earnedMinutes} min</span>
               </div>
             </motion.div>
+
+            {/* Status do salvamento — o ganho nunca se perde em silêncio (FR-004) */}
+            <div style={{ marginBottom: 26, minHeight: 22 }}>
+              {saveState === 'saving' && (
+                <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Salvando seu progresso…</span>
+              )}
+              {saveState === 'saved' && (
+                <span style={{ fontSize: 13, color: '#22E39C', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <Check size={14} strokeWidth={2.6} /> Progresso salvo na sua conta
+                </span>
+              )}
+              {saveState === 'retry' && (
+                <div style={{
+                  display: 'inline-flex', flexDirection: 'column', gap: 10, alignItems: 'center',
+                  padding: '14px 20px', borderRadius: 14,
+                  background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.3)',
+                }}>
+                  <span style={{ fontSize: 13.5, color: '#FF8A2B', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <AlertTriangle size={14} strokeWidth={2.2} /> Falha de conexão — seu progresso ainda não foi salvo.
+                  </span>
+                  <button
+                    onClick={() => saveSessionProgress(earnedMinutes, earnedXp)}
+                    style={{
+                      padding: '9px 22px', borderRadius: 10, border: 'none',
+                      background: '#FF8A2B', color: '#0F0819',
+                      fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                    }}
+                  >
+                    Tentar de novo
+                  </button>
+                </div>
+              )}
+              {saveState === 'failed' && (
+                <span style={{ fontSize: 13, color: '#FF5C5C' }}>
+                  ✕ Não foi possível salvar o progresso. Tente novamente mais tarde.
+                </span>
+              )}
+            </div>
 
             <motion.div
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}

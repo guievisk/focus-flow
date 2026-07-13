@@ -78,20 +78,20 @@ export default function Onboarding() {
         style={{
           position: 'relative', zIndex: 1,
           width: 440, padding: 40,
-          background: 'rgba(28,15,48,0.6)',
+          background: 'rgba(17,9,30,0.6)',
           backdropFilter: 'blur(24px)',
           borderRadius: 20,
-          border: '1px solid rgba(147,51,255,0.2)',
-          boxShadow: '0 24px 64px rgba(124,0,255,0.2)',
+          border: '1px solid rgba(122,0,255,0.2)',
+          boxShadow: '0 11px 13px rgba(124,0,255,0.04)',
         }}
       >
         {/* Logo */}
         <div style={{
           width: 52, height: 52, margin: '0 auto 20px',
-          background: 'linear-gradient(135deg, #9333FF, #7C00FF)',
+          background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
           borderRadius: 14, display: 'flex',
           alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 0 28px rgba(147,51,255,0.6)',
+          boxShadow: '0 0 13px rgba(122,0,255,0.27)',
         }}>
           <Target size={26} color="#fff" strokeWidth={2.2} />
         </div>
@@ -114,7 +114,7 @@ export default function Onboarding() {
           placeholder="Pode ser um apelido ou nome fictício"
           style={{
             width: '100%', padding: '12px 16px', borderRadius: 10,
-            border: '1.5px solid rgba(147,51,255,0.2)',
+            border: '1.5px solid rgba(122,0,255,0.2)',
             background: 'rgba(255,255,255,0.04)', color: 'var(--ink)',
             fontFamily: "'Product Sans', sans-serif", fontSize: 14, outline: 'none',
             marginBottom: 16,
@@ -133,7 +133,7 @@ export default function Onboarding() {
           onChange={e => setBirthDate(e.target.value)}
           style={{
             width: '100%', padding: '12px 16px', borderRadius: 10,
-            border: '1.5px solid rgba(147,51,255,0.2)',
+            border: '1.5px solid rgba(122,0,255,0.2)',
             background: 'rgba(255,255,255,0.04)', color: 'var(--ink)',
             fontFamily: "'Product Sans', sans-serif", fontSize: 14, outline: 'none',
             marginBottom: 16, colorScheme: 'dark',
@@ -149,8 +149,8 @@ export default function Onboarding() {
           >
             <div style={{
               padding: 16, borderRadius: 12,
-              background: 'rgba(147,51,255,0.08)',
-              border: '1px solid rgba(147,51,255,0.2)',
+              background: 'rgba(122,0,255,0.08)',
+              border: '1px solid rgba(122,0,255,0.2)',
             }}>
               <p style={{ fontSize: 13, color: 'var(--ink)', marginBottom: 12, lineHeight: 1.5 }}>
                 Você tem {age} anos. Quer ativar o <strong>controle parental</strong>?
@@ -161,9 +161,9 @@ export default function Onboarding() {
                   onClick={() => setWantsParental(true)}
                   style={{
                     flex: 1, padding: '8px', borderRadius: 8, cursor: 'pointer',
-                    border: wantsParental ? '1px solid #9333FF' : '1px solid rgba(255,255,255,0.1)',
-                    background: wantsParental ? 'rgba(147,51,255,0.2)' : 'transparent',
-                    color: wantsParental ? '#B57BFF' : 'var(--ink-2)',
+                    border: wantsParental ? '1px solid #7A00FF' : '1px solid rgba(255,255,255,0.1)',
+                    background: wantsParental ? 'rgba(122,0,255,0.2)' : 'transparent',
+                    color: wantsParental ? '#A64DFF' : 'var(--ink-2)',
                     fontSize: 13, fontWeight: 600, fontFamily: 'Inter',
                   }}
                 >Sim</button>
@@ -171,9 +171,9 @@ export default function Onboarding() {
                   onClick={() => setWantsParental(false)}
                   style={{
                     flex: 1, padding: '8px', borderRadius: 8, cursor: 'pointer',
-                    border: !wantsParental ? '1px solid #9333FF' : '1px solid rgba(255,255,255,0.1)',
-                    background: !wantsParental ? 'rgba(147,51,255,0.2)' : 'transparent',
-                    color: !wantsParental ? '#B57BFF' : 'var(--ink-2)',
+                    border: !wantsParental ? '1px solid #7A00FF' : '1px solid rgba(255,255,255,0.1)',
+                    background: !wantsParental ? 'rgba(122,0,255,0.2)' : 'transparent',
+                    color: !wantsParental ? '#A64DFF' : 'var(--ink-2)',
                     fontSize: 13, fontWeight: 600, fontFamily: 'Inter',
                   }}
                 >Não</button>
@@ -187,7 +187,7 @@ export default function Onboarding() {
                   placeholder="Email do responsável"
                   style={{
                     width: '100%', padding: '10px 14px', borderRadius: 8,
-                    border: '1.5px solid rgba(147,51,255,0.2)',
+                    border: '1.5px solid rgba(122,0,255,0.2)',
                     background: 'rgba(255,255,255,0.04)', color: 'var(--ink)',
                     fontFamily: "'Product Sans', sans-serif", fontSize: 13, outline: 'none',
                   }}
@@ -203,11 +203,11 @@ export default function Onboarding() {
           disabled={loading || !birthDate || !displayName || (isMinor && wantsParental && !parentEmail)}
           style={{
             width: '100%', padding: 13, borderRadius: 12, border: 'none',
-            background: (!birthDate || !displayName || loading) ? 'rgba(147,51,255,0.3)' : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+            background: (!birthDate || !displayName || loading) ? 'rgba(122,0,255,0.3)' : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
             color: '#fff', fontSize: 15, fontWeight: 600,
             cursor: (!birthDate || !displayName || loading) ? 'not-allowed' : 'pointer',
             fontFamily: "'Product Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            boxShadow: '0 4px 18px rgba(147,51,255,0.4)',
+            boxShadow: '0 4px 18px rgba(122,0,255,0.08)',
           }}
         >
           {loading ? 'Salvando...' : <>Continuar <ArrowRight size={16} /></>}

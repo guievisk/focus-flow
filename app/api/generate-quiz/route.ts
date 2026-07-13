@@ -19,27 +19,32 @@ function extractQuestions(raw: string): Question[] | null {
     cleaned = cleaned.replace(/^```(json)?/i, '').replace(/```$/i, '').trim()
   }
 
-  let parsed: any
+  let parsed: unknown
   try {
     parsed = JSON.parse(cleaned)
   } catch {
     return null
   }
 
-  let arr: any = null
-  if (Array.isArray(parsed)) arr = parsed
-  else if (Array.isArray(parsed.questions)) arr = parsed.questions
-  else {
-    const key = Object.keys(parsed).find((k) => Array.isArray(parsed[k]))
-    if (key) arr = parsed[key]
+  let arr: unknown[] | null = null
+  if (Array.isArray(parsed)) {
+    arr = parsed
+  } else if (parsed && typeof parsed === 'object') {
+    const obj = parsed as Record<string, unknown>
+    if (Array.isArray(obj.questions)) {
+      arr = obj.questions
+    } else {
+      const key = Object.keys(obj).find((k) => Array.isArray(obj[k]))
+      if (key) arr = obj[key] as unknown[]
+    }
   }
 
   if (!Array.isArray(arr) || arr.length === 0) return null
 
-  const questions: Question[] = arr
-    .filter((q: any) => q && (q.q || q.question) && (q.opts || q.options))
-    .map((q: any) => {
-      const opts = (q.opts || q.options || []).map((o: any) => String(o))
+  const questions: Question[] = (arr as Record<string, unknown>[])
+    .filter((q) => q && (q.q || q.question) && (q.opts || q.options))
+    .map((q) => {
+      const opts = ((q.opts || q.options || []) as unknown[]).map((o) => String(o))
       const rawIdx = typeof q.correct === 'number'
         ? q.correct
         : typeof q.correctIndex === 'number'

@@ -31,12 +31,12 @@ type Props = {
  */
 export default function SweepCard({
   children,
-  accent = '#9333FF',
+  accent = '#7A00FF',
   radius = 16,
   opacity = 0.35,
   duration = 4,
   delay = 0,
-  background = '#150e24',
+  background = '#0B0616',
   padding = 22,
   stroke = 1.5,
   style,

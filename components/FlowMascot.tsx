@@ -11,7 +11,7 @@ const SOURCES: Record<FlowExpression, string> = {
   happy:    '/happy.png',
   content:  '/content.png',
   kissing:  '/kissing.png',
-  thinking: '/thinking.png',
+  thinking: '/thinking1.png',
 }
 
 const ANIMATIONS: Record<FlowAnimation, string | undefined> = {

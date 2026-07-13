@@ -16,7 +16,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (loading) return
 
     /*
-     🧠 LÓGICA DO GUARDA
+     LÓGICA DO GUARDA
         1. Não logado → manda pro login (/)
         2. Logado mas SEM perfil → manda pro /onboarding
         3. Logado COM perfil tentando ver /onboarding → manda pro dashboard
@@ -51,8 +51,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       }}>
         <div style={{
           width: 40, height: 40, borderRadius: '50%',
-          border: '3px solid rgba(147,51,255,0.2)',
-          borderTopColor: '#9333FF',
+          border: '3px solid rgba(122,0,255,0.2)',
+          borderTopColor: '#7A00FF',
           animation: 'spin 1s linear infinite',
         }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

@@ -1,25 +1,27 @@
 // app/study/page.tsx
 'use client'
 import { useAuth } from '@/components/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { getDataLayer } from '@/lib/data'
+import { isRetryable } from '@/lib/data/errors'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import AppShell from '@/components/layout/AppShell'
 import FlowMascot, { FlowExpression, FlowAnimation } from '@/components/FlowMascot'
-import { Leaf, Zap, Flame, Clock, Check, X, Sparkles, ArrowRight } from 'lucide-react'
+import { Leaf, Zap, Flame, Clock, Check, X, Sparkles, ArrowRight, AlertTriangle, Target } from 'lucide-react'
 
 type Question = { q: string; opts: string[]; correct: number; exp: string }
 type Quiz = { questions: Question[] }
 type Phase = 'setup' | 'loading' | 'playing' | 'results'
+type SaveState = 'idle' | 'saving' | 'saved' | 'retry' | 'failed'
 type LevelKey = 'facil' | 'medio' | 'dificil'
 
 const LEVELS: Record<LevelKey, {
   key: LevelKey; label: string; time: number; desc: string
   accent: string; glow: string; Icon: typeof Leaf
 }> = {
-  facil:   { key: 'facil',   label: 'Fácil',   time: 20, desc: 'Sem pressa',       accent: '#10B981', glow: 'rgba(16,185,129,0.35)', Icon: Leaf },
-  medio:   { key: 'medio',   label: 'Médio',   time: 15, desc: 'Equilibrado',      accent: '#9333FF', glow: 'rgba(147,51,255,0.35)', Icon: Zap },
-  dificil: { key: 'dificil', label: 'Difícil', time: 10, desc: 'Contra o relógio', accent: '#FB923C', glow: 'rgba(251,146,60,0.35)', Icon: Flame },
+  facil:   { key: 'facil',   label: 'Fácil',   time: 20, desc: 'Sem pressa',       accent: '#00C97B', glow: 'rgba(16,185,129,0.35)', Icon: Leaf },
+  medio:   { key: 'medio',   label: 'Médio',   time: 15, desc: 'Equilibrado',      accent: '#7A00FF', glow: 'rgba(122,0,255,0.35)', Icon: Zap },
+  dificil: { key: 'dificil', label: 'Difícil', time: 10, desc: 'Contra o relógio', accent: '#FF8A2B', glow: 'rgba(251,146,60,0.35)', Icon: Flame },
 }
 
 const SUGGESTIONS = [
@@ -31,7 +33,7 @@ const SUGGESTIONS = [
 ]
 
 export default function Study() {
-  const { refreshProfile } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [questionCount, setQuestionCount] = useState(5)
   const [phase, setPhase] = useState<Phase>('setup')
   const [topic, setTopic] = useState('')
@@ -48,34 +50,57 @@ export default function Study() {
   const totalRef = useRef(0)
   const timeRef = useRef(0)
 
-  const saveQuizResult = async () => {
-    if (!quiz) return
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+  const [saveState, setSaveState] = useState<SaveState>('idle')
+  // Chave de idempotência: UMA por quiz concluído; retries reutilizam a mesma
+  // chave, então o servidor nunca credita XP duas vezes (FR-001/FR-004).
+  const idempotencyKeyRef = useRef<string | null>(null)
+  const quizIdRef = useRef<string | null>(null)
 
+  const saveQuizResult = async () => {
+    if (!quiz || !user) return
+    if (!idempotencyKeyRef.current) idempotencyKeyRef.current = crypto.randomUUID()
+
+    setSaveState('saving')
+    try {
       const correct = Object.values(answers).filter((a, i) => a === quiz.questions[i]?.correct).length
       const xpPerQ = level === 'facil' ? 8 : level === 'medio' ? 12 : 18
       const xpEarned = correct * xpPerQ + (correct === quiz.questions.length ? 20 : 0)
 
-      await supabase.from('quiz_results').insert({
-        user_id: user.id,
-        topic,
-        difficulty: level,
-        total_questions: quiz.questions.length,
-        correct_answers: correct,
-        xp_earned: xpEarned,
-      })
+      const dl = getDataLayer()
 
-      await supabase.rpc('add_xp', { p_user_id: user.id, p_amount: xpEarned })
+      // No retry, não recria o registro do quiz que já foi salvo.
+      if (!quizIdRef.current) {
+        const { quizId } = await dl.quizzes.saveResult({
+          topic,
+          difficulty: level ?? 'facil',
+          totalQuestions: quiz.questions.length,
+          correctAnswers: correct,
+          xpEarned,
+        })
+        quizIdRef.current = quizId
+      }
+
+      if (xpEarned > 0) {
+        await dl.xp.awardXp({
+          amount: xpEarned,
+          source: 'quiz',
+          sourceId: quizIdRef.current,
+          idempotencyKey: idempotencyKeyRef.current,
+        })
+      }
+
       await refreshProfile()
+      setSaveState('saved')
     } catch (e) {
       console.error('Erro ao salvar resultado:', e)
+      setSaveState(isRetryable(e) ? 'retry' : 'failed')
     }
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- dispara o save assíncrono uma vez ao entrar em resultados
     if (phase === 'results') saveQuizResult()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
   const advance = useCallback(() => {
@@ -228,16 +253,16 @@ export default function Study() {
               >
                 <div style={{
                   position: 'absolute', inset: -1, borderRadius: 16,
-                  background: 'radial-gradient(120% 120% at 50% 0%, rgba(147,51,255,0.25), transparent 70%)',
+                  background: 'radial-gradient(120% 120% at 50% 0%, rgba(122,0,255,0.25), transparent 70%)',
                   filter: 'blur(12px)', pointerEvents: 'none',
                 }} />
                 <div style={{
                   position: 'relative',
                   display: 'flex', gap: 10, alignItems: 'center',
                   background: 'var(--surface)', borderRadius: 14,
-                  border: '1.5px solid rgba(147,51,255,0.35)', padding: 8,
+                  border: '1.5px solid rgba(122,0,255,0.35)', padding: 8,
                 }}>
-                  <Sparkles size={18} color="#9333FF" style={{ marginLeft: 8, flexShrink: 0 }} />
+                  <Sparkles size={18} color="#7A00FF" style={{ marginLeft: 8, flexShrink: 0 }} />
                   <input
                     value={topic}
                     onChange={(e) => { setTopic(e.target.value); setError('') }}
@@ -263,7 +288,7 @@ export default function Study() {
                         padding: '6px 12px', borderRadius: 100,
                         border: '1px solid var(--border)',
                         background: topic === s ? 'var(--p-light)' : 'transparent',
-                        color: topic === s ? '#A78BFA' : 'var(--ink-3)',
+                        color: topic === s ? '#8F5CF7' : 'var(--ink-3)',
                         fontSize: 12.5, cursor: 'pointer',
                         fontFamily: "'Product Sans', sans-serif",
                         transition: 'all .15s',
@@ -293,8 +318,8 @@ export default function Study() {
               </motion.div>
 
               {error && (
-                <div style={{ color: '#ff6b9d', fontSize: 13, marginBottom: 16, textAlign: 'center' }}>
-                  ⚠ {error}
+                <div style={{ color: '#FF4D8D', fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <AlertTriangle size={14} strokeWidth={2.2} /> {error}
                 </div>
               )}
 
@@ -312,7 +337,7 @@ export default function Study() {
                       style={{
                         flex: 1, borderRadius: 12,
                         border: questionCount === n ? '1.5px solid var(--p)' : '1.5px solid rgba(255,255,255,0.08)',
-                        background: questionCount === n ? 'rgba(147,51,255,0.15)' : 'transparent',
+                        background: questionCount === n ? 'rgba(122,0,255,0.15)' : 'transparent',
                         color: questionCount === n ? 'var(--p)' : 'var(--ink-2)',
                         fontWeight: 700, cursor: 'pointer',
                         transition: 'all .2s',
@@ -337,13 +362,13 @@ export default function Study() {
                   width: '100%', borderRadius: 14, border: 'none',
                   background: !topic.trim() || !level
                     ? 'var(--surface-2)'
-                    : 'linear-gradient(135deg, #9333FF, #7C00FF)',
+                    : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
                   color: !topic.trim() || !level ? 'var(--ink-3)' : '#fff',
                   fontFamily: "'Product Sans', sans-serif",
                   fontWeight: 700,
                   cursor: !topic.trim() || !level ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  boxShadow: !topic.trim() || !level ? 'none' : '0 10px 28px rgba(147,51,255,0.4)',
+                  boxShadow: !topic.trim() || !level ? 'none' : '0 10px 13px rgba(122,0,255,0.18)',
                   transition: 'background .2s, box-shadow .2s',
                 }}
               >
@@ -368,7 +393,7 @@ export default function Study() {
                 Preparando seu quiz
               </h3>
               <p style={{ fontSize: 14, color: 'var(--ink-3)' }}>
-                Gerando perguntas sobre <strong style={{ color: '#A78BFA' }}>{topic}</strong>
+                Gerando perguntas sobre <strong style={{ color: '#8F5CF7' }}>{topic}</strong>
               </p>
             </motion.div>
           )}
@@ -456,20 +481,63 @@ export default function Study() {
 
                 <div style={{
                   display: 'inline-block', padding: '14px 28px', borderRadius: 16,
-                  background: 'rgba(147,51,255,0.12)', border: '1px solid rgba(147,51,255,0.25)',
-                  marginBottom: 26,
+                  background: 'rgba(122,0,255,0.12)', border: '1px solid rgba(122,0,255,0.25)',
+                  marginBottom: 12,
                 }}>
-                  <span style={{ fontSize: 26, fontWeight: 800, color: '#A78BFA' }}>+{xpEarned} XP</span>
+                  <span style={{ fontSize: 26, fontWeight: 800, color: '#8F5CF7' }}>+{xpEarned} XP</span>
                   {correct === total && (
-                    <span style={{ display: 'block', fontSize: 13, color: '#34D399', marginTop: 4 }}>
-                      🎯 Nota máxima! +20 XP bônus
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#22E39C', marginTop: 4 }}>
+                      <Target size={14} strokeWidth={2.2} /> Nota máxima! +20 XP bônus
+                    </span>
+                  )}
+                </div>
+
+                {/* Status do salvamento — o ganho nunca se perde em silêncio (FR-004) */}
+                <div style={{ marginBottom: 26, minHeight: 22 }}>
+                  {saveState === 'saving' && (
+                    <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Salvando seu XP…</span>
+                  )}
+                  {saveState === 'saved' && (
+                    <span style={{ fontSize: 13, color: '#22E39C', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <Check size={14} strokeWidth={2.6} /> XP salvo na sua conta
+                    </span>
+                  )}
+                  {saveState === 'retry' && (
+                    <div style={{
+                      display: 'inline-flex', flexDirection: 'column', gap: 10, alignItems: 'center',
+                      padding: '14px 20px', borderRadius: 14,
+                      background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.3)',
+                    }}>
+                      <span style={{ fontSize: 13.5, color: '#FF8A2B', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <AlertTriangle size={14} strokeWidth={2.2} /> Falha de conexão — seu XP ainda não foi salvo.
+                      </span>
+                      <button
+                        onClick={saveQuizResult}
+                        style={{
+                          padding: '9px 22px', borderRadius: 10, border: 'none',
+                          background: '#FF8A2B', color: '#0F0819',
+                          fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+                        }}
+                      >
+                        Tentar de novo
+                      </button>
+                    </div>
+                  )}
+                  {saveState === 'failed' && (
+                    <span style={{ fontSize: 13, color: '#FF5C5C' }}>
+                      ✕ Não foi possível salvar o resultado. Tente novamente mais tarde.
                     </span>
                   )}
                 </div>
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
                   <button
-                    onClick={() => { setPhase('setup'); setQuiz(null); setAnswers({}) }}
+                    onClick={() => {
+                      setPhase('setup'); setQuiz(null); setAnswers({})
+                      setSaveState('idle')
+                      idempotencyKeyRef.current = null
+                      quizIdRef.current = null
+                    }}
                     style={{
                       padding: '13px 28px', borderRadius: 12,
                       border: '1px solid rgba(255,255,255,0.1)',
@@ -522,7 +590,7 @@ function LevelCard({
       }} />
       <div className="study-level-inner" style={{
         position: 'relative', borderRadius: 16,
-        background: '#150e24',
+        background: '#0B0616',
         display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 10,
       }}>
         <div style={{
@@ -583,7 +651,7 @@ function PlayingView({
         <div style={{
           display: 'flex', alignItems: 'center', gap: 6,
           fontSize: 15, fontWeight: 800,
-          color: urgent ? '#EF4444' : level.accent,
+          color: urgent ? '#FF3B3B' : level.accent,
         }}>
           <Clock size={16} /> {timeLeft}s
         </div>
@@ -592,7 +660,7 @@ function PlayingView({
       <div style={{ height: 8, borderRadius: 100, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 24 }}>
         <div style={{
           height: '100%', width: `${pct}%`,
-          background: urgent ? '#EF4444' : level.accent,
+          background: urgent ? '#FF3B3B' : level.accent,
           borderRadius: 100,
           transition: 'width 1s linear, background .3s',
         }} />
@@ -619,16 +687,16 @@ function PlayingView({
           const isSelected = !locked && picked === oi
           const timedOut = locked && picked === null && oi === q.correct
 
-          let sweepColor = '#9333FF'
+          let sweepColor = '#7A00FF'
           let sweepOpacity = 0.35
 
-          if (isSelected) { sweepColor = '#A78BFA'; sweepOpacity = 0.45 }
-          if (isCorrect || timedOut) { sweepColor = '#10B981'; sweepOpacity = 0.35 }
-          if (isWrong) { sweepColor = '#EF4444'; sweepOpacity = 0.35 }
+          if (isSelected) { sweepColor = '#8F5CF7'; sweepOpacity = 0.45 }
+          if (isCorrect || timedOut) { sweepColor = '#00C97B'; sweepOpacity = 0.35 }
+          if (isWrong) { sweepColor = '#FF3B3B'; sweepOpacity = 0.35 }
 
-          let textColor = '#e0d8ee'
-          if (isCorrect || timedOut) textColor = '#34D399'
-          if (isWrong) textColor = '#F87171'
+          let textColor = '#EDE7F7'
+          if (isCorrect || timedOut) textColor = '#22E39C'
+          if (isWrong) textColor = '#FF5C5C'
           if (isSelected) textColor = '#fff'
 
           return (
@@ -654,12 +722,12 @@ function PlayingView({
               }} />
               <div className="study-option-inner" style={{
                 position: 'relative', borderRadius: 14,
-                background: '#150e24',
+                background: '#0B0616',
                 display: 'flex', alignItems: 'center', gap: 10,
               }}>
-                {isCorrect && <Check size={18} strokeWidth={3} color="#34D399" style={{ flexShrink: 0 }} />}
-                {isWrong && <X size={18} strokeWidth={3} color="#F87171" style={{ flexShrink: 0 }} />}
-                {timedOut && <Check size={18} strokeWidth={3} color="#34D399" style={{ flexShrink: 0 }} />}
+                {isCorrect && <Check size={18} strokeWidth={3} color="#22E39C" style={{ flexShrink: 0 }} />}
+                {isWrong && <X size={18} strokeWidth={3} color="#FF5C5C" style={{ flexShrink: 0 }} />}
+                {timedOut && <Check size={18} strokeWidth={3} color="#22E39C" style={{ flexShrink: 0 }} />}
                 <span className="study-option-text" style={{
                   fontWeight: 600, color: textColor,
                   fontFamily: "'Product Sans', sans-serif",
@@ -681,12 +749,18 @@ function PlayingView({
             exit={{ opacity: 0 }}
             style={{
               marginTop: 20,
-              textAlign: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               fontSize: 16, fontWeight: 700,
-              color: picked === q.correct ? '#34D399' : picked == null ? '#FB923C' : '#F87171',
+              color: picked === q.correct ? '#22E39C' : picked == null ? '#FF8A2B' : '#FF5C5C',
             }}
           >
-            {picked === q.correct ? '🎯 Acertou!' : picked == null ? '⏱ Tempo esgotou!' : '❌ Não foi dessa vez'}
+            {picked === q.correct ? (
+              <><Check size={18} strokeWidth={2.6} /> Acertou!</>
+            ) : picked == null ? (
+              <><Clock size={18} strokeWidth={2.4} /> Tempo esgotou!</>
+            ) : (
+              <><X size={18} strokeWidth={2.6} /> Não foi dessa vez</>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

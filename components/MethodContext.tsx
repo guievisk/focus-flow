@@ -31,13 +31,15 @@ export function MethodProvider({ children }: { children: ReactNode }) {
   const [method, setMethodState] = useState<MethodId>(null)
 
   /*
-   🧠 LINGUAGEM → useEffect + localStorage
+   LINGUAGEM → useEffect + localStorage
       Ao carregar a página, lemos do localStorage qual método
       foi escolhido antes. Assim a escolha não se perde quando
       o usuário recarrega ou fecha o navegador.
   */
   useEffect(() => {
+    // localStorage só existe no cliente — leitura pós-montagem é o padrão correto (SSR-safe).
     const saved = localStorage.getItem('focusflow-method') as MethodId
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (saved) setMethodState(saved)
   }, [])
 

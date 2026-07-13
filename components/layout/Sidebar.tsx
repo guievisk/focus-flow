@@ -172,6 +172,9 @@ export default function Sidebar({ mobileOpen = false, onClose }: Props) {
         title="Clique para sair"
       >
         {avatarUrl ? (
+          // Avatar vem de host arbitrário (Supabase Storage, Google, etc.); usar
+          // next/image exigiria cadastrar cada domínio em images.remotePatterns.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avatarUrl}
             alt={displayName}

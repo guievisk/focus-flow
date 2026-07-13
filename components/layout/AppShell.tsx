@@ -14,8 +14,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
 
-  // fecha drawer ao navegar
+  // fecha drawer ao navegar (sincroniza a UI com a navegação — fonte externa)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false)
   }, [pathname])
 
@@ -60,7 +61,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           }
           .appshell-sidebar.open {
             transform: translateX(0);
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            box-shadow: 0 0 18px rgba(0,0,0,0.5);
           }
           .appshell-topbar {
             display: flex;

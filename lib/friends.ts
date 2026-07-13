@@ -35,7 +35,7 @@ function orderPair(a: string, b: string): [string, string] {
  * Pega meu invite_code do banco
  */
 export async function getMyInviteCode(userId: string): Promise<string | null> {
-  console.log('🟢 getMyInviteCode INICIO', userId)
+  console.log(' getMyInviteCode INICIO', userId)
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -44,14 +44,14 @@ export async function getMyInviteCode(userId: string): Promise<string | null> {
       .single()
 
     if (error) {
-      console.error('🔴 getMyInviteCode ERROR:', error)
+      console.error(' getMyInviteCode ERROR:', error)
       return null
     }
 
-    console.log('🟢 getMyInviteCode RESULTADO:', data?.invite_code)
+    console.log(' getMyInviteCode RESULTADO:', data?.invite_code)
     return data?.invite_code || null
   } catch (err) {
-    console.error('🔴 getMyInviteCode EXCEPTION:', err)
+    console.error(' getMyInviteCode EXCEPTION:', err)
     return null
   }
 }
@@ -155,7 +155,7 @@ export async function removeFriendship(friendshipId: string) {
 export async function listFriendships(
   myUserId: string
 ): Promise<FriendWithProfile[]> {
-  console.log('🟡 listFriendships INICIO', myUserId)
+  console.log(' listFriendships INICIO', myUserId)
 
   try {
     // 1. Busca todas as amizades onde eu sou parte
@@ -166,16 +166,16 @@ export async function listFriendships(
       .order('created_at', { ascending: false })
 
     if (fErr) {
-      console.error('🔴 listFriendships fErr:', fErr)
+      console.error(' listFriendships fErr:', fErr)
       return []
     }
 
     if (!friendships || friendships.length === 0) {
-      console.log('🟡 listFriendships: 0 amizades')
+      console.log(' listFriendships: 0 amizades')
       return []
     }
 
-    console.log('🟡 listFriendships:', friendships.length, 'amizades encontradas')
+    console.log(' listFriendships:', friendships.length, 'amizades encontradas')
 
     // 2. Pega os IDs únicos dos amigos (não os meus)
     const friendIds = friendships.map((f) =>
@@ -190,11 +190,11 @@ export async function listFriendships(
       .in('id', uniqueFriendIds)
 
     if (pErr) {
-      console.error('🔴 listFriendships pErr:', pErr)
+      console.error(' listFriendships pErr:', pErr)
       return []
     }
 
-    console.log('🟡 listFriendships: perfis carregados', profiles?.length)
+    console.log(' listFriendships: perfis carregados', profiles?.length)
 
     // 4. Cria um Map pra lookup rápido
     const profileMap = new Map(profiles?.map((p) => [p.id, p]) || [])
@@ -220,10 +220,10 @@ export async function listFriendships(
       }
     })
 
-    console.log('🟡 listFriendships FINAL:', result.length)
+    console.log(' listFriendships FINAL:', result.length)
     return result
   } catch (err) {
-    console.error('🔴 listFriendships EXCEPTION:', err)
+    console.error(' listFriendships EXCEPTION:', err)
     return []
   }
 }

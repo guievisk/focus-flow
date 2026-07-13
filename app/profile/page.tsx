@@ -11,7 +11,7 @@ import { calcAge } from '@/lib/age'
 import { Clock, Zap, Save, Check } from 'lucide-react'
 import AvatarUpload from '@/components/AvatarUpload'
 
-const ACCENT = '#9333FF'
+const ACCENT = '#7A00FF'
 
 export default function Profile() {
   const { user, profile, refreshProfile } = useAuth()
@@ -23,7 +23,9 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl]     = useState<string | null>(null)
 
   useEffect(() => {
+    // Inicializa os campos editáveis a partir do perfil carregado (fonte externa).
     if (profile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayName(profile.display_name || '')
       setPhone(profile.phone || '')
       const googleAvatar =
@@ -177,12 +179,12 @@ export default function Profile() {
                 disabled={saving}
                 style={{
                   marginTop: 22, width: '100%', padding: 13, borderRadius: 12, border: 'none',
-                  background: saved ? '#00FFA3' : 'linear-gradient(135deg, #9333FF, #7C00FF)',
-                  color: saved ? '#0B0612' : '#fff', fontSize: 14, fontWeight: 600,
+                  background: saved ? '#00FFA3' : 'linear-gradient(135deg, #7A00FF, #5A00C4)',
+                  color: saved ? '#050308' : '#fff', fontSize: 14, fontWeight: 600,
                   cursor: saving ? 'wait' : 'pointer',
                   fontFamily: "'Product Sans', sans-serif",
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  boxShadow: '0 4px 18px rgba(147,51,255,0.4)', transition: 'background .3s',
+                  boxShadow: '0 4px 18px rgba(122,0,255,0.08)', transition: 'background .3s',
                 }}
               >
                 {saved ? <><Check size={16} /> Salvo!</> : saving ? 'Salvando...' : <><Save size={16} /> Salvar alterações</>}
@@ -198,7 +200,7 @@ export default function Profile() {
           className="prof-side-col"
         >
           {/* Nível + XP */}
-          <SweepCard radius={14} padding={0} duration={5} delay={-1.5} opacity={0.35} accent="#3B82F6">
+          <SweepCard radius={14} padding={0} duration={5} delay={-1.5} opacity={0.35} accent="#2E6BFF">
             <div className="prof-side-padding">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                 <div style={{
@@ -207,7 +209,7 @@ export default function Profile() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <Zap size={20} color="#3B82F6" />
+                  <Zap size={20} color="#2E6BFF" />
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, color: 'var(--ink-2)' }}>Nível atual</div>
@@ -217,7 +219,7 @@ export default function Profile() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, gap: 8, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{xpInLevel} / 100 XP</span>
-                <span style={{ fontSize: 12, color: '#3B82F6', fontWeight: 600 }}>{xp} XP total</span>
+                <span style={{ fontSize: 12, color: '#2E6BFF', fontWeight: 600 }}>{xp} XP total</span>
               </div>
               <div style={{ width: '100%', height: 10, background: 'rgba(255,255,255,0.06)', borderRadius: 100, overflow: 'hidden' }}>
                 <motion.div
@@ -226,8 +228,8 @@ export default function Profile() {
                   transition={{ duration: 1, ease: 'easeOut' }}
                   style={{
                     height: '100%', borderRadius: 100,
-                    background: 'linear-gradient(90deg, #7C00FF, #9333FF, #B57BFF)',
-                    boxShadow: '0 0 12px rgba(147,51,255,0.7)',
+                    background: 'linear-gradient(90deg, #5A00C4, #7A00FF, #A64DFF)',
+                    boxShadow: '0 0 12px rgba(122,0,255,0.32)',
                   }}
                 />
               </div>
@@ -238,7 +240,7 @@ export default function Profile() {
           </SweepCard>
 
           {/* Minutos */}
-          <SweepCard radius={14} padding={0} duration={5} delay={-2.8} opacity={0.35} accent="#F59E0B">
+          <SweepCard radius={14} padding={0} duration={5} delay={-2.8} opacity={0.35} accent="#FFA800">
             <div className="prof-side-padding">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{
@@ -247,7 +249,7 @@ export default function Profile() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <Clock size={20} color="#F59E0B" />
+                  <Clock size={20} color="#FFA800" />
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--ink-2)' }}>Tempo total estudado</div>
               </div>
@@ -267,7 +269,7 @@ export default function Profile() {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '12px 16px', borderRadius: 10,
-  border: '1.5px solid rgba(147,51,255,0.2)',
+  border: '1.5px solid rgba(122,0,255,0.2)',
   background: 'rgba(255,255,255,0.04)', color: 'var(--ink)',
   fontFamily: "'Product Sans', sans-serif", fontSize: 14, outline: 'none',
   boxSizing: 'border-box',

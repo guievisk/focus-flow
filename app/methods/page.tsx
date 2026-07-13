@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 /*
- 🧠 LINGUAGEM → Estrutura de dados (array de objetos)
+ LINGUAGEM → Estrutura de dados (array de objetos)
     Cada método é um objeto com id, categoria, título,
     descrição, como aplicar e cor. Isso deixa o código
     organizado e fácil de adicionar novos métodos.
@@ -21,7 +21,7 @@ const methods = [
     id: 'spaced' as MethodId,
     category: 'Memorização e Retenção',
     Icon: Repeat,
-    color: '#9333FF',
+    color: '#7A00FF',
     title: 'Repetição Espaçada',
     desc: 'Revise o conteúdo em intervalos que aumentam progressivamente (1 dia, 3 dias, 1 semana, 1 mês). Combate diretamente a curva do esquecimento.',
     how: 'Muito associado a flashcards. Você revisa cada cartão em intervalos crescentes — o que você acerta volta menos vezes, o que erra volta mais.',
@@ -31,7 +31,7 @@ const methods = [
     id: 'active-recall' as MethodId,
     category: 'Memorização e Retenção',
     Icon: Brain,
-    color: '#9333FF',
+    color: '#7A00FF',
     title: 'Recordação Ativa',
     desc: 'Force o cérebro a buscar a informação na memória sem olhar o material. Reler cria falsa familiaridade — testar a si mesmo constrói memória real.',
     how: 'Feche o livro e escreva tudo que lembra numa folha em branco. Ou resolva questões antes mesmo de revisar a teoria.',
@@ -41,7 +41,7 @@ const methods = [
     id: 'feynman' as MethodId,
     category: 'Compreensão e Organização',
     Icon: MessageSquare,
-    color: '#9333FF',
+    color: '#7A00FF',
     title: 'Técnica Feynman',
     desc: 'Se você não consegue explicar algo de forma simples, você não entendeu de verdade. Valida se você compreendeu ou só decorou.',
     how: 'Escolha um tópico e finja ensiná-lo para uma criança de 10 anos. Use analogias. Quando travar, volte ao material e corrija a falha.',
@@ -51,7 +51,7 @@ const methods = [
     id: 'cornell' as MethodId,
     category: 'Compreensão e Organização',
     Icon: Columns,
-    color: '#9333FF',
+    color: '#7A00FF',
     title: 'Método Cornell',
     desc: 'Um sistema estruturado de anotações que divide a página em três seções para organizar o pensamento durante e depois da aula.',
     how: 'Coluna esquerda: palavras-chave e perguntas. Direita: anotações da aula. Rodapé: resumo de 3-4 linhas feito na revisão.',
@@ -61,7 +61,7 @@ const methods = [
     id: 'pomodoro' as MethodId,
     category: 'Gestão de Tempo e Foco',
     Icon: Clock,
-    color: '#9333FF',
+    color: '#7A00FF',
     title: 'Técnica Pomodoro',
     desc: 'Mantém a concentração alta e evita fadiga mental dividindo o tempo em blocos de foco total e descanso.',
     how: '25 minutos de foco total (sem celular), 5 minutos de descanso real. A cada 4 ciclos, pausa maior de 15 a 30 minutos.',
@@ -71,7 +71,7 @@ const methods = [
     id: 'interleaving' as MethodId,
     category: 'Gestão de Tempo e Foco',
     Icon: Shuffle,
-    color: '#9333FF',
+    color: '#7A00FF',
     title: 'Intercalação',
     desc: 'Alternar entre diferentes matérias numa mesma sessão, em vez de passar o dia todo em um único assunto. Melhora a adaptabilidade do cérebro.',
     how: 'Tem 3 horas? Faça 1h de Matemática, 1h de História, 1h de Biologia. O cérebro se desapega e recupera contextos diferentes.',
@@ -107,9 +107,9 @@ export default function Methods() {
           initial={{ opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }}
           style={{ marginTop: 20, marginBottom: 24 }}
         >
-          <Card style={{ padding: '16px 22px', background: 'rgba(139,92,246,0.12)', borderColor: 'rgba(139,92,246,0.3)' }}>
+          <Card style={{ padding: '16px 22px', background: 'rgba(110,40,224,0.12)', borderColor: 'rgba(110,40,224,0.3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <CheckCircle2 size={20} color="#8B5CF6" />
+              <CheckCircle2 size={20} color="#6E28E0" />
               <div style={{ flex: 1 }}>
                 <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>Método ativo: </span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
@@ -119,8 +119,8 @@ export default function Methods() {
               <button
                 onClick={() => setMethod(null)}
                 style={{
-                  background: 'transparent', border: '1px solid rgba(139,92,246,0.3)',
-                  color: '#A78BFA', borderRadius: 8, padding: '6px 14px',
+                  background: 'transparent', border: '1px solid rgba(110,40,224,0.3)',
+                  color: '#8F5CF7', borderRadius: 8, padding: '6px 14px',
                   fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Product Sans', sans-serif",
                 }}
               >

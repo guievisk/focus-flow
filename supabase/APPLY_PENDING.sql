@@ -1,0 +1,403 @@
+-- ============================================================
+-- FocusFlow — SQL PENDENTE (aplicar UMA vez no SQL Editor do Supabase)
+--
+-- Diagnóstico em 2026-07-12 contra o projeto de produção:
+--   profiles, quiz_results, friendships, messages  -> JA EXISTEM (ok)
+--   tabela xp_events                               -> AUSENTE
+--   função award_xp                                -> AUSENTE
+--   função record_study_activity                   -> AUSENTE
+--
+-- Sem isto o app NAO credita XP nenhum: o quiz salva o resultado, mas
+-- profiles.xp fica parado e dashboard/progresso ficam zerados.
+--
+-- 0001, 0002 e 0003 já foram aplicados em 2026-07-12. Depois disso, o teste
+-- E2E contra o banco real encontrou o bug 42804 em record_study_activity
+-- (0002 gravava text em coluna date), corrigido por 0004.
+--
+-- Concatenação de migrations/0001, 0002, 0003 e 0004, nesta ordem.
+-- Tudo é idempotente: rodar de novo não duplica nada e 0004 usa
+-- `create or replace`, então reaplicar o arquivo inteiro é seguro.
+-- ============================================================
+
+
+-- >>>>>>>>>>>>>>>>>>>> 0001_xp_events.sql <<<<<<<<<<<<<<<<<<<<
+
+-- 0001_xp_events.sql
+-- Ledger de XP: um registro por ganho, append-only.
+-- profiles.xp continua sendo o agregado (fonte de verdade do total);
+-- xp_events é a fonte do histórico ("XP por dia", conquistas).
+
+create table if not exists public.xp_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  amount integer not null check (amount > 0),
+  source text not null check (source in ('quiz', 'study_session', 'lesson', 'backfill')),
+  source_id text,
+  idempotency_key text not null,
+  created_at timestamptz not null default now(),
+  -- Pilar da não-duplicação: retry com a mesma chave é no-op.
+  constraint xp_events_user_idempotency_unique unique (user_id, idempotency_key)
+);
+
+-- Consulta dominante: histórico recente de um usuário.
+create index if not exists xp_events_user_created_idx
+  on public.xp_events (user_id, created_at desc);
+
+alter table public.xp_events enable row level security;
+
+-- Usuário lê apenas os próprios eventos.
+-- (drop antes de create: `create policy` não aceita `if not exists`, e a
+--  migração precisa ser segura para reexecução.)
+drop policy if exists xp_events_select_own on public.xp_events;
+create policy xp_events_select_own
+  on public.xp_events
+  for select
+  using (user_id = auth.uid());
+
+-- Sem policies de INSERT/UPDATE/DELETE: clientes não escrevem aqui.
+-- Toda escrita passa pelos RPCs SECURITY DEFINER (0002_award_xp.sql).
+
+-- >>>>>>>>>>>>>>>>>>>> 0002_award_xp.sql <<<<<<<<<<<<<<<<<<<<
+
+-- 0002_award_xp.sql
+-- RPCs atômicos de gamificação. Contrato completo:
+-- specs/001-xp-persistence-3d-ui/contracts/database-rpc.md
+--
+-- Regras comuns:
+--  * usuário SEMPRE de auth.uid() (nunca parâmetro — corrige o add_xp legado,
+--    que aceitava p_user_id do cliente);
+--  * evento + agregado na MESMA transação;
+--  * conflito de idempotency_key = resposta normal com duplicate=true, sem efeito.
+
+-- ============================================================================
+-- award_xp: concede XP genérico (quiz, lição)
+-- ============================================================================
+create or replace function public.award_xp(
+  p_amount integer,
+  p_source text,
+  p_idempotency_key text,
+  p_source_id text default null
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user uuid := auth.uid();
+  v_duplicate boolean := false;
+  v_total integer;
+begin
+  if v_user is null then
+    raise exception 'award_xp: not authenticated';
+  end if;
+  if coalesce(p_amount, 0) <= 0 then
+    raise exception 'award_xp: amount must be > 0';
+  end if;
+  if p_source not in ('quiz', 'lesson') then
+    raise exception 'award_xp: invalid source "%"', p_source;
+  end if;
+  if coalesce(p_idempotency_key, '') = '' then
+    raise exception 'award_xp: idempotency_key required';
+  end if;
+
+  -- Primeiro acesso: garante o perfil (edge case da spec).
+  insert into public.profiles (id) values (v_user)
+  on conflict (id) do nothing;
+
+  insert into public.xp_events (user_id, amount, source, source_id, idempotency_key)
+  values (v_user, p_amount, p_source, p_source_id, p_idempotency_key)
+  on conflict (user_id, idempotency_key) do nothing;
+
+  if found then
+    update public.profiles
+       set xp = coalesce(xp, 0) + p_amount
+     where id = v_user;
+  else
+    v_duplicate := true;
+  end if;
+
+  select coalesce(xp, 0) into v_total from public.profiles where id = v_user;
+
+  return jsonb_build_object('xp_total', v_total, 'duplicate', v_duplicate);
+end;
+$$;
+
+-- ============================================================================
+-- record_study_activity: sessão de estudo concluída —
+-- minutos do dia + meta diária (20 min) + streak + XP, numa transação.
+-- Substitui a lógica JS de lib/streak.ts#addStudyMinutes.
+-- ============================================================================
+create or replace function public.record_study_activity(
+  p_minutes integer,
+  p_xp integer,
+  p_idempotency_key text,
+  p_tz text default 'America/Sao_Paulo'
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user uuid := auth.uid();
+  c_goal constant integer := 20;
+  v_today text;
+  v_yesterday text;
+  v_inserted boolean;
+  v_minutes_today integer;
+  v_goal_already boolean;
+  v_streak integer;
+  v_last text;
+  v_total integer;
+  r record;
+begin
+  if v_user is null then
+    raise exception 'record_study_activity: not authenticated';
+  end if;
+  if coalesce(p_minutes, 0) <= 0 then
+    raise exception 'record_study_activity: minutes must be > 0';
+  end if;
+  if coalesce(p_xp, 0) <= 0 then
+    raise exception 'record_study_activity: xp must be > 0';
+  end if;
+  if coalesce(p_idempotency_key, '') = '' then
+    raise exception 'record_study_activity: idempotency_key required';
+  end if;
+
+  -- Data local do usuário (o código antigo usava UTC via toISOString —
+  -- bug latente para o usuário brasileiro à noite; aqui é configurável).
+  v_today := to_char((now() at time zone p_tz)::date, 'YYYY-MM-DD');
+  v_yesterday := to_char((now() at time zone p_tz)::date - 1, 'YYYY-MM-DD');
+
+  insert into public.profiles (id) values (v_user)
+  on conflict (id) do nothing;
+
+  -- A chave cobre a atividade INTEIRA (XP e minutos): inserir o evento
+  -- antes de qualquer efeito garante que a duplicata não aplica nada.
+  insert into public.xp_events (user_id, amount, source, idempotency_key)
+  values (v_user, p_xp, 'study_session', p_idempotency_key)
+  on conflict (user_id, idempotency_key) do nothing;
+  v_inserted := found;
+
+  -- Lock da linha do perfil: serializa duas abas concorrentes.
+  select coalesce(minutes_today, 0)    as minutes_today,
+         minutes_today_date::text      as minutes_date,
+         coalesce(streak_days, 0)      as streak_days,
+         last_streak_date::text        as last_date,
+         coalesce(xp, 0)               as xp
+    into r
+    from public.profiles
+   where id = v_user
+     for update;
+
+  if not v_inserted then
+    return jsonb_build_object(
+      'xp_total',       r.xp,
+      'streak_days',    r.streak_days,
+      'minutes_today',  case when r.minutes_date = v_today then r.minutes_today else 0 end,
+      'goal_hit_today', (r.minutes_date = v_today and r.minutes_today >= c_goal),
+      'duplicate',      true
+    );
+  end if;
+
+  v_minutes_today := case when r.minutes_date = v_today then r.minutes_today else 0 end;
+  v_goal_already  := v_minutes_today >= c_goal;
+  v_minutes_today := v_minutes_today + p_minutes;
+  v_streak        := r.streak_days;
+  v_last          := r.last_date;
+
+  -- Cruzou a meta hoje pela primeira vez?
+  if (not v_goal_already) and v_minutes_today >= c_goal then
+    if v_last = v_yesterday then
+      v_streak := v_streak + 1;      -- continuou a sequência
+    elsif v_last = v_today then
+      null;                          -- já contou hoje
+    else
+      v_streak := 1;                 -- quebrou ou é o 1º dia
+    end if;
+    v_last := v_today;
+  end if;
+
+  update public.profiles
+     set xp                 = coalesce(xp, 0) + p_xp,
+         total_minutes      = coalesce(total_minutes, 0) + p_minutes,
+         minutes_today      = v_minutes_today,
+         minutes_today_date = v_today,
+         streak_days        = v_streak,
+         last_streak_date   = v_last
+   where id = v_user
+   returning xp into v_total;
+
+  return jsonb_build_object(
+    'xp_total',       v_total,
+    'streak_days',    v_streak,
+    'minutes_today',  v_minutes_today,
+    'goal_hit_today', v_minutes_today >= c_goal,
+    'duplicate',      false
+  );
+end;
+$$;
+
+-- Permissões: apenas usuários autenticados executam.
+revoke execute on function public.award_xp(integer, text, text, text) from public, anon;
+revoke execute on function public.record_study_activity(integer, integer, text, text) from public, anon;
+grant execute on function public.award_xp(integer, text, text, text) to authenticated;
+grant execute on function public.record_study_activity(integer, integer, text, text) to authenticated;
+
+-- O RPC legado add_xp(p_user_id, p_amount) fica intocado até o novo código
+-- estar em produção; remoção em 0004_drop_add_xp.sql.
+
+-- >>>>>>>>>>>>>>>>>>>> 0003_backfill.sql <<<<<<<<<<<<<<<<<<<<
+
+-- 0003_backfill.sql
+-- Popula o histórico (xp_events) a partir dos quizzes já gravados.
+--
+-- IMPORTANTE: NÃO altera profiles.xp — os totais atuais dos usuários são
+-- preservados exatamente como estão (FR-011 / SC-006). É esperado que
+-- SUM(xp_events.amount) <= profiles.xp para usuários antigos, porque o XP
+-- de sessões de estudo anteriores nunca teve registro individual.
+--
+-- Idempotente: re-execução conflita na unique key e não insere nada.
+
+insert into public.xp_events
+  (user_id, amount, source, source_id, idempotency_key, created_at)
+select
+  q.user_id,
+  q.xp_earned,
+  'backfill',
+  q.id::text,
+  'backfill-quiz-' || q.id::text,
+  q.created_at
+from public.quiz_results q
+where coalesce(q.xp_earned, 0) > 0
+on conflict (user_id, idempotency_key) do nothing;
+
+-- >>>>>>>>>>>>>>>>>>>> 0004_fix_record_study_activity_date_cast.sql <<<<<<<<<<<<<<<<<<<<
+
+-- 0004_fix_record_study_activity_date_cast.sql
+--
+-- Correção de bug encontrado no teste E2E contra o banco real:
+--
+--   ERRO 42804: column "minutes_today_date" is of type date
+--               but expression is of type text
+--
+-- Em 0002, v_today/v_yesterday/v_last são `text` (para poder comparar com as
+-- colunas convertidas via ::text no SELECT), mas o UPDATE final grava esses
+-- valores direto em `minutes_today_date` e `last_streak_date`, que são `date`.
+-- O Postgres não faz essa coerção implícita num UPDATE, então a função falhava
+-- SEMPRE: nenhuma sessão de estudo registrava minutos nem streak.
+--
+-- Correção: cast explícito para `date` na escrita. A lógica é idêntica a 0002.
+
+create or replace function public.record_study_activity(
+  p_minutes integer,
+  p_xp integer,
+  p_idempotency_key text,
+  p_tz text default 'America/Sao_Paulo'
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user uuid := auth.uid();
+  c_goal constant integer := 20;
+  v_today text;
+  v_yesterday text;
+  v_inserted boolean;
+  v_minutes_today integer;
+  v_goal_already boolean;
+  v_streak integer;
+  v_last text;
+  v_total integer;
+  r record;
+begin
+  if v_user is null then
+    raise exception 'record_study_activity: not authenticated';
+  end if;
+  if coalesce(p_minutes, 0) <= 0 then
+    raise exception 'record_study_activity: minutes must be > 0';
+  end if;
+  if coalesce(p_xp, 0) <= 0 then
+    raise exception 'record_study_activity: xp must be > 0';
+  end if;
+  if coalesce(p_idempotency_key, '') = '' then
+    raise exception 'record_study_activity: idempotency_key required';
+  end if;
+
+  -- Data local do usuário (não UTC: o brasileiro estudando à noite não pode
+  -- ter a sessão contada no dia seguinte).
+  v_today := to_char((now() at time zone p_tz)::date, 'YYYY-MM-DD');
+  v_yesterday := to_char((now() at time zone p_tz)::date - 1, 'YYYY-MM-DD');
+
+  insert into public.profiles (id) values (v_user)
+  on conflict (id) do nothing;
+
+  -- A chave cobre a atividade INTEIRA (XP e minutos): inserir o evento antes
+  -- de qualquer efeito garante que a duplicata não aplica nada.
+  insert into public.xp_events (user_id, amount, source, idempotency_key)
+  values (v_user, p_xp, 'study_session', p_idempotency_key)
+  on conflict (user_id, idempotency_key) do nothing;
+  v_inserted := found;
+
+  -- Lock da linha do perfil: serializa duas abas concorrentes.
+  select coalesce(minutes_today, 0)    as minutes_today,
+         minutes_today_date::text      as minutes_date,
+         coalesce(streak_days, 0)      as streak_days,
+         last_streak_date::text        as last_date,
+         coalesce(xp, 0)               as xp
+    into r
+    from public.profiles
+   where id = v_user
+     for update;
+
+  if not v_inserted then
+    return jsonb_build_object(
+      'xp_total',       r.xp,
+      'streak_days',    r.streak_days,
+      'minutes_today',  case when r.minutes_date = v_today then r.minutes_today else 0 end,
+      'goal_hit_today', (r.minutes_date = v_today and r.minutes_today >= c_goal),
+      'duplicate',      true
+    );
+  end if;
+
+  v_minutes_today := case when r.minutes_date = v_today then r.minutes_today else 0 end;
+  v_goal_already  := v_minutes_today >= c_goal;
+  v_minutes_today := v_minutes_today + p_minutes;
+  v_streak        := r.streak_days;
+  v_last          := r.last_date;
+
+  -- Cruzou a meta hoje pela primeira vez?
+  if (not v_goal_already) and v_minutes_today >= c_goal then
+    if v_last = v_yesterday then
+      v_streak := v_streak + 1;      -- continuou a sequência
+    elsif v_last = v_today then
+      null;                          -- já contou hoje
+    else
+      v_streak := 1;                 -- quebrou ou é o 1º dia
+    end if;
+    v_last := v_today;
+  end if;
+
+  -- AQUI o bug de 0002: text -> date precisa de cast explícito.
+  update public.profiles
+     set xp                 = coalesce(xp, 0) + p_xp,
+         total_minutes      = coalesce(total_minutes, 0) + p_minutes,
+         minutes_today      = v_minutes_today,
+         minutes_today_date = v_today::date,
+         streak_days        = v_streak,
+         last_streak_date   = v_last::date
+   where id = v_user
+   returning xp into v_total;
+
+  return jsonb_build_object(
+    'xp_total',       v_total,
+    'streak_days',    v_streak,
+    'minutes_today',  v_minutes_today,
+    'goal_hit_today', v_minutes_today >= c_goal,
+    'duplicate',      false
+  );
+end;
+$$;
+
+revoke execute on function public.record_study_activity(integer, integer, text, text) from public, anon;
+grant execute on function public.record_study_activity(integer, integer, text, text) to authenticated;

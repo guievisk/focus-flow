@@ -10,7 +10,7 @@ type AnswerResult = {
 }
 
 // Parse tolerante (tira markdown, devolve null se quebrar)
-function tryParseJson(raw: string): any | null {
+function tryParseJson(raw: string): unknown {
   let cleaned = raw.trim()
   if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```(json)?/i, '').replace(/```$/i, '').trim()
@@ -23,7 +23,7 @@ function tryParseJson(raw: string): any | null {
 }
 
 // Aceita boolean de verdade OU string ("true", "sim", "correct"...)
-function coerceBool(v: any): boolean | null {
+function coerceBool(v: unknown): boolean | null {
   if (typeof v === 'boolean') return v
   if (typeof v === 'string') {
     const s = v.toLowerCase().trim()
@@ -40,7 +40,7 @@ async function askGroqJson(
   baseTemp: number,
   maxTokens: number,
   attempts = 3
-): Promise<any | null> {
+): Promise<Record<string, unknown> | null> {
   let lastErr = ''
   for (let i = 1; i <= attempts; i++) {
     try {
@@ -57,7 +57,7 @@ async function askGroqJson(
       })
       const raw = completion.choices[0]?.message?.content || '{}'
       const parsed = tryParseJson(raw)
-      if (parsed && typeof parsed === 'object') return parsed
+      if (parsed && typeof parsed === 'object') return parsed as Record<string, unknown>
       lastErr = 'JSON inválido'
     } catch (e) {
       lastErr = e instanceof Error ? e.message : 'erro'
@@ -147,7 +147,7 @@ Judge if the student's answer is essentially correct, then give feedback. Return
           result: {
             correct,
             feedback:
-              typeof parsed.feedback === 'string' && parsed.feedback.trim()
+              parsed && typeof parsed.feedback === 'string' && parsed.feedback.trim()
                 ? parsed.feedback.trim()
                 : correct
                   ? 'Boa, resposta correta!'

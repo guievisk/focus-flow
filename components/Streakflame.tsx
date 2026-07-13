@@ -33,8 +33,8 @@ export default function StreakFlame() {
         style={{
           display: 'flex', alignItems: 'center', gap: 7,
           padding: '7px 13px', borderRadius: 100,
-          border: active ? '1px solid rgba(147,51,255,0.4)' : '1px solid rgba(255,255,255,0.08)',
-          background: active ? 'rgba(147,51,255,0.15)' : 'rgba(255,255,255,0.03)',
+          border: active ? '1px solid rgba(122,0,255,0.4)' : '1px solid rgba(255,255,255,0.08)',
+          background: active ? 'rgba(122,0,255,0.15)' : 'rgba(255,255,255,0.03)',
           cursor: 'pointer', fontFamily: "'Product Sans', sans-serif",
         }}
       
@@ -61,9 +61,9 @@ export default function StreakFlame() {
               onClick={e => e.stopPropagation()}
               style={{
                 position: 'relative', width: 380, padding: 40,
-                background: 'rgba(28,15,48,0.9)', borderRadius: 24,
-                border: '1px solid rgba(147,51,255,0.3)',
-                boxShadow: '0 24px 80px rgba(124,0,255,0.4)',
+                background: 'rgba(17,9,30,0.9)', borderRadius: 24,
+                border: '1px solid rgba(122,0,255,0.3)',
+                boxShadow: '0 11px 16px rgba(124,0,255,0.08)',
                 textAlign: 'center',
               }}
             >
@@ -86,25 +86,25 @@ export default function StreakFlame() {
                   width: 160,
                   height: 160,
                   margin: '0 auto 20px',
-                  filter: 'drop-shadow(0 0 30px rgba(147,51,255,0.6))',
+                  filter: 'drop-shadow(0 0 14px rgba(122,0,255,0.27))',
                 }}
               >
                 <Lottie animationData={fireAnimation} loop={true} />
               </div>
 
               <div style={{ fontSize: 44, fontWeight: 900, color: 'var(--ink)' }}>{days}</div>
-              <div style={{ fontSize: 15, color: '#B57BFF', fontWeight: 600, marginBottom: 16 }}>
+              <div style={{ fontSize: 15, color: '#A64DFF', fontWeight: 600, marginBottom: 16 }}>
                 {days === 1 ? 'dia de sequência' : 'dias de sequência'}
               </div>
 
               {/* Progresso de hoje */}
               <div style={{
                 padding: 14, borderRadius: 12,
-                background: 'rgba(147,51,255,0.08)', border: '1px solid rgba(147,51,255,0.2)',
+                background: 'rgba(122,0,255,0.08)', border: '1px solid rgba(122,0,255,0.2)',
               }}>
                 {active ? (
-                  <p style={{ fontSize: 13, color: 'var(--ink)' }}>
-                    🔥 Meta de hoje batida! Volte amanhã pra continuar.
+                  <p style={{ fontSize: 13, color: 'var(--ink)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Flame size={14} strokeWidth={2.2} color="#FF8A2B" /> Meta de hoje batida! Volte amanhã pra continuar.
                   </p>
                 ) : (
                   <>
@@ -115,7 +115,7 @@ export default function StreakFlame() {
                       <div style={{
                         width: `${Math.min((minutesToday / DAILY_GOAL) * 100, 100)}%`,
                         height: '100%', borderRadius: 100,
-                        background: 'linear-gradient(90deg, #7C00FF, #9333FF)',
+                        background: 'linear-gradient(90deg, #5A00C4, #7A00FF)',
                       }} />
                     </div>
                     <p style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 8 }}>

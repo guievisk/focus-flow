@@ -10,13 +10,13 @@ import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'rec
 import { Activity, Clock, CheckCircle, Star, BookOpen } from 'lucide-react'
 import { useAuth } from '@/components/AuthContext'
 
-const ACCENT = '#9333FF'
+const ACCENT = '#7A00FF'
 const DAILY_GOAL = 20
 
 const DIFF_COLOR: Record<string, string> = {
-  facil:   '#10B981',
-  medio:   '#9333FF',
-  dificil: '#FB923C',
+  facil:   '#00C97B',
+  medio:   '#7A00FF',
+  dificil: '#FF8A2B',
 }
 
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -77,15 +77,19 @@ export default function Dashboard() {
     user?.user_metadata?.full_name ||
     'Aluno'
 
+  const userId = user?.id
+
   useEffect(() => {
-    if (!user) { setLoadingQuizzes(false); return }
+    // Sem usuário não há o que buscar — apenas encerra o loading. Não é render em cascata.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!userId) { setLoadingQuizzes(false); return }
     let active = true
     ;(async () => {
       try {
         const { data, error } = await supabase
           .from('quiz_results')
           .select('id, topic, difficulty, total_questions, correct_answers, xp_earned, created_at')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(60)
         if (!active) return
@@ -99,7 +103,7 @@ export default function Dashboard() {
       }
     })()
     return () => { active = false }
-  }, [user?.id])
+  }, [userId])
 
   const xp = profile?.xp ?? 0
   const streak = profile?.streak_days ?? 0
@@ -118,13 +122,13 @@ export default function Dashboard() {
 
   const stats = [
     { label: 'Sequência de estudo', value: `${streak} ${streak === 1 ? 'dia' : 'dias'}`,
-      sub: streak > 0 ? 'Continue assim 🔥' : 'Comece hoje', Icon: Activity, c: '#FB923C' },
+      sub: streak > 0 ? 'Continue assim' : 'Comece hoje', Icon: Activity, c: '#FF8A2B' },
     { label: 'Foco hoje', value: `${minutesToday} min`,
-      sub: minutesToday >= DAILY_GOAL ? 'Meta batida! ✅' : `Meta: ${DAILY_GOAL} min`, Icon: Clock, c: '#F59E0B' },
+      sub: minutesToday >= DAILY_GOAL ? 'Meta batida!' : `Meta: ${DAILY_GOAL} min`, Icon: Clock, c: '#FFA800' },
     { label: 'Quizzes realizados', value: loadingQuizzes ? '—' : `${quizzes.length}`,
-      sub: quizzesToday > 0 ? `+${quizzesToday} hoje` : 'Nenhum hoje', Icon: CheckCircle, c: '#10B981' },
+      sub: quizzesToday > 0 ? `+${quizzesToday} hoje` : 'Nenhum hoje', Icon: CheckCircle, c: '#00C97B' },
     { label: 'XP acumulado', value: xp.toLocaleString('pt-BR'),
-      sub: `Nível ${level}`, Icon: Star, c: '#3B82F6' },
+      sub: `Nível ${level}`, Icon: Star, c: '#2E6BFF' },
   ]
 
   return (
@@ -217,18 +221,18 @@ export default function Dashboard() {
                 <AreaChart data={weekData}>
                   <defs>
                     <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.5} />
-                      <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#6E28E0" stopOpacity={0.5} />
+                      <stop offset="95%" stopColor="#6E28E0" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#4A4A66' }} />
+                  <XAxis dataKey="d" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#6A6A88' }} />
                   <YAxis hide allowDecimals={false} />
                   <Tooltip
-                    contentStyle={{ background: '#150e24', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
+                    contentStyle={{ background: '#0B0616', border: '1px solid rgba(110,40,224,0.3)', borderRadius: 10, fontSize: 12, color: 'var(--ink)' }}
                     formatter={(value) => [`${value} quiz${value === 1 ? '' : 'zes'}`, 'Feitos']}
                   />
-                  <Area type="monotone" dataKey="q" stroke="#8B5CF6" strokeWidth={2.5}
-                    fill="url(#grad)" dot={{ fill: '#8B5CF6', r: 3.5, strokeWidth: 0 }} activeDot={{ r: 6 }}
+                  <Area type="monotone" dataKey="q" stroke="#6E28E0" strokeWidth={2.5}
+                    fill="url(#grad)" dot={{ fill: '#6E28E0', r: 3.5, strokeWidth: 0 }} activeDot={{ r: 6 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
