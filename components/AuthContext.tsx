@@ -85,7 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     })
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_e, session) => {
+    // IMPORTANTE: o callback do onAuthStateChange roda SEGURANDO o lock de auth
+    // (navigator.locks) do supabase-js. Se chamarmos `await supabase.from(...)`
+    // aqui dentro, essa query também precisa do mesmo lock → deadlock, o
+    // `setLoading(false)` nunca roda e a tela fica em loading infinito.
+    // Por isso não usamos async/await aqui: só atualizamos o user de forma
+    // síncrona e adiamos a carga do perfil pra fora do lock (setTimeout 0).
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       if (_e === 'SIGNED_OUT') {
         setUser(null)
         setProfile(null)
@@ -93,11 +99,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
       const u = session?.user ?? null
+      setUser(u)
       if (u) {
-        setUser(u)
-        await loadProfile(u.id)
+        setTimeout(() => {
+          loadProfile(u.id).finally(() => setLoading(false))
+        }, 0)
+      } else {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => listener.subscription.unsubscribe()
