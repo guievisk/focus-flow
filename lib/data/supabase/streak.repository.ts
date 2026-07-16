@@ -35,6 +35,9 @@ export function createSupabaseStreakRepository(): StreakRepository {
         })
         throwIfError(error, 'record_study_activity')
 
+        // invalida cache do perfil (XP/streak/minutos mudaram) — fire and forget
+        fetch('/api/profile', { method: 'DELETE', credentials: 'include' }).catch(() => null)
+
         const result = data as {
           xp_total: number
           streak_days: number

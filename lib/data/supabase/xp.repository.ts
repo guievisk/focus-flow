@@ -39,6 +39,10 @@ export function createSupabaseXpRepository(): XpRepository {
           p_source_id: award.sourceId ?? null,
         })
         throwIfError(error, 'award_xp')
+
+        // invalida cache do perfil (XP mudou) — fire and forget, não bloqueia
+        fetch('/api/profile', { method: 'DELETE', credentials: 'include' }).catch(() => null)
+
         const result = data as { xp_total: number; duplicate: boolean }
         return { xpTotal: result.xp_total, duplicate: result.duplicate }
       } catch (err) {

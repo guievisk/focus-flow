@@ -56,19 +56,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const loadProfile = useCallback(async (userId: string) => {
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (error) {
-      console.error('Erro ao carregar perfil:', error)
+  try {
+    const res = await fetch('/api/profile', { credentials: 'include' })
+    if (!res.ok) {
+      console.error('Erro ao carregar perfil:', res.status)
+      return
     }
-
-    setProfile(data)
-  }, [])
+    const { profile } = await res.json()
+    setProfile(profile)
+  } catch (err) {
+    console.error('Erro ao carregar perfil:', err)
+  }
+}, [])
 
   const refreshProfile = useCallback(async () => {
     if (!user) return
