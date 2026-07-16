@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
+import { checkRateLimit } from '@/lib/ratelimit'
+import { getSupabaseServer } from '@/lib/data/supabase/server'
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
@@ -82,6 +84,28 @@ function extractStepContent(raw: string): StepContent | null {
 
 export async function POST(req: Request) {
   try {
+    // 1. Auth
+    const supabase = await getSupabaseServer()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // 2. Rate limit: 15 requests por minuto por usuário
+    const rl = await checkRateLimit({
+      key: `lesson-step:${user.id}`,
+      limit: 15,
+      windowSec: 60,
+    })
+
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas requisições. Espera um minuto e tenta de novo.' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      )
+    }
+
+    // 3. Validação
     const { topic, level, stepTitle, stepDescription, attemptNumber } = await req.json()
 
     if (!topic || !level || !stepTitle) {

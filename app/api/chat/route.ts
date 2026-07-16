@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
+import { checkRateLimit } from '@/lib/ratelimit'
+import { getSupabaseServer } from '@/lib/data/supabase/server'
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
@@ -12,6 +14,28 @@ type Message = {
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Auth
+    const supabase = await getSupabaseServer()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // 2. Rate limit: 30 mensagens por minuto por usuário
+    const rl = await checkRateLimit({
+      key: `chat:${user.id}`,
+      limit: 30,
+      windowSec: 60,
+    })
+
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Muitas mensagens. Espera um minuto e tenta de novo.' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      )
+    }
+
+    // 3. Validação
     const { messages }: { messages: Message[] } = await req.json()
 
     if (!messages || messages.length === 0) {
