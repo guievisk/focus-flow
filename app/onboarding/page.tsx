@@ -1,4 +1,3 @@
-// app/onboarding/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -19,7 +18,6 @@ export default function Onboarding() {
   const [parentEmail, setParentEmail]   = useState('')
   const [loading, setLoading]           = useState(false)
 
-  // Calcula a idade a partir da data de nascimento
   const calcAge = (date: string) => {
     const birth = new Date(date)
     const today = new Date()
@@ -85,7 +83,7 @@ export default function Onboarding() {
           boxShadow: '0 11px 13px rgba(124,0,255,0.04)',
         }}
       >
-        {/* Logo */}
+        {}
         <div style={{
           width: 52, height: 52, margin: '0 auto 20px',
           background: 'linear-gradient(135deg, #7A00FF, #5A00C4)',
@@ -103,7 +101,7 @@ export default function Onboarding() {
           Precisamos de algumas informações para personalizar sua experiência.
         </p>
 
-        {/* Campo nome de exibição */}
+        {}
         <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)', display: 'block', marginBottom: 8 }}>
           Como quer ser chamado?
         </label>
@@ -121,7 +119,7 @@ export default function Onboarding() {
           }}
         />
 
-        {/* Campo data de nascimento */}
+        {}
         <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-2)', display: 'block', marginBottom: 8 }}>
           Data de nascimento
         </label>
@@ -140,7 +138,7 @@ export default function Onboarding() {
           }}
         />
 
-        {/* Controle parental para menores */}
+        {}
         {isMinor && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -197,7 +195,7 @@ export default function Onboarding() {
           </motion.div>
         )}
 
-        {/* Botão salvar */}
+        {}
         <button
           onClick={handleSave}
           disabled={loading || !birthDate || !displayName || (isMinor && wantsParental && !parentEmail)}

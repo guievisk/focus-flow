@@ -1,4 +1,3 @@
-// app/methods/page.tsx
 'use client'
 
 import { motion } from 'framer-motion'
@@ -10,12 +9,6 @@ import {
   CheckCircle2, ArrowRight,
 } from 'lucide-react'
 
-/*
- LINGUAGEM → Estrutura de dados (array de objetos)
-    Cada método é um objeto com id, categoria, título,
-    descrição, como aplicar e cor. Isso deixa o código
-    organizado e fácil de adicionar novos métodos.
-*/
 const methods = [
   {
     id: 'spaced' as MethodId,
@@ -79,16 +72,14 @@ const methods = [
   },
 ]
 
-// Agrupa os métodos por categoria
 const categories = [...new Set(methods.map(m => m.category))]
 
 export default function Methods() {
-  // Lê e altera o método ativo no Context global
   const { method, setMethod } = useMethod()
 
   return (
     <AppShell>
-      {/* Header */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: .4 }} style={{ marginBottom: 10 }}
@@ -101,7 +92,7 @@ export default function Methods() {
         </p>
       </motion.div>
 
-      {/* Banner do método ativo */}
+      {}
       {method && (
         <motion.div
           initial={{ opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }}
@@ -131,7 +122,7 @@ export default function Methods() {
         </motion.div>
       )}
 
-      {/* Métodos agrupados por categoria */}
+      {}
       <div style={{ marginTop: method ? 0 : 24, display: 'flex', flexDirection: 'column', gap: 32 }}>
         {categories.map((cat, ci) => (
           <div key={cat}>
@@ -153,7 +144,7 @@ export default function Methods() {
                       borderColor: active ? `${m.color}66` : undefined,
                       background: active ? `${m.color}12` : undefined,
                     }}>
-                      {/* Cabeçalho do método */}
+                      {}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
                         <div style={{
                           width: 44, height: 44, borderRadius: 11,
@@ -165,12 +156,12 @@ export default function Methods() {
                         <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink)' }}>{m.title}</h3>
                       </div>
 
-                      {/* Descrição */}
+                      {}
                       <p style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.65, marginBottom: 14 }}>
                         {m.desc}
                       </p>
 
-                      {/* Como aplicar */}
+                      {}
                       <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, color: m.color, marginBottom: 5, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                           Como aplicar
@@ -178,13 +169,13 @@ export default function Methods() {
                         <p style={{ fontSize: 12.5, color: 'var(--ink-2)', lineHeight: 1.6 }}>{m.how}</p>
                       </div>
 
-                      {/* Melhor para */}
+                      {}
                       <div style={{ marginBottom: 18 }}>
                         <span style={{ fontSize: 12, color: 'var(--ink-3)' }}>Ideal para: </span>
                         <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{m.best}</span>
                       </div>
 
-                      {/* Botão escolher */}
+                      {}
                       <button
                         onClick={() => setMethod(active ? null : m.id)}
                         style={{

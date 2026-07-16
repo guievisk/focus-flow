@@ -1,4 +1,3 @@
-// app/api/lesson-step/route.ts
 import { NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
 
@@ -19,8 +18,6 @@ type StepContent = {
   exercise: Exercise
 }
 
-// Extrai e normaliza o conteúdo do passo, tolerando formatos diferentes.
-// Retorna null se faltar o essencial (explicação ou exercício) — aí o retry tenta de novo.
 function extractStepContent(raw: string): StepContent | null {
   let cleaned = raw.trim()
   if (cleaned.startsWith('```')) {
@@ -37,7 +34,6 @@ function extractStepContent(raw: string): StepContent | null {
   if (!parsedRaw || typeof parsedRaw !== 'object') return null
   let parsed = parsedRaw as Record<string, unknown>
 
-  // Às vezes o modelo embrulha em { content: {...} }
   if (
     parsed.content &&
     typeof parsed.content === 'object' &&
@@ -53,14 +49,12 @@ function extractStepContent(raw: string): StepContent | null {
   const ex = parsed.exercise as Record<string, unknown> | undefined
   if (!ex || typeof ex !== 'object' || !ex.question) return null
 
-  // examples → array de strings limpas
   const examples: string[] = Array.isArray(parsed.examples)
     ? (parsed.examples as unknown[])
         .filter((e): e is string => typeof e === 'string' && e.trim() !== '')
         .map((e) => e.trim())
     : []
 
-  // Normaliza o exercício. Se tem options válidas → múltipla escolha; senão → texto livre.
   const hasOptions = Array.isArray(ex.options) && ex.options.length >= 2
   const type: 'multiple-choice' | 'free-text' = hasOptions ? 'multiple-choice' : 'free-text'
 
@@ -73,7 +67,7 @@ function extractStepContent(raw: string): StepContent | null {
   if (type === 'multiple-choice') {
     exercise.options = (ex.options as unknown[]).map((o) => String(o))
     const idx = typeof ex.correctIndex === 'number' ? ex.correctIndex : 0
-    exercise.correctIndex = idx >= 0 && idx < (exercise.options?.length ?? 0) ? idx : 0    // guarda o texto da opção certa também (ajuda o check-answer)
+    exercise.correctIndex = idx >= 0 && idx < (exercise.options?.length ?? 0) ? idx : 0
     exercise.expectedAnswer =
       typeof ex.expectedAnswer === 'string' && ex.expectedAnswer.trim()
         ? ex.expectedAnswer.trim()
@@ -157,11 +151,8 @@ ${isRetry ? `\nThis is re-explanation attempt #${attemptNumber + 1}. Use a diffe
 
 Generate the teaching content for this step. Return only the JSON.`
 
-    // Temperatura base: alta no re-ensino (variedade), normal na 1ª explicação.
     const baseTemp = isRetry ? 0.85 : 0.6
 
-    // Retry de ROBUSTEZ (JSON quebrado). Baixa a temp só um pouco por tentativa,
-    // com piso 0.3 — sem matar a variedade do ensino.
     const MAX_TENTATIVAS = 3
     let lastError = ''
 

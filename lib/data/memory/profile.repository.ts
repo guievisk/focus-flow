@@ -1,5 +1,3 @@
-// lib/data/memory/profile.repository.ts
-// Fake em memória do ProfileRepository — mesma semântica do contrato.
 
 import { DataLayerError } from '../errors'
 import type { ProfileRepository } from '../repositories'

@@ -1,4 +1,3 @@
-// app/dashboard/page.tsx
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -80,7 +79,6 @@ export default function Dashboard() {
   const userId = user?.id
 
   useEffect(() => {
-    // Sem usuário não há o que buscar — apenas encerra o loading. Não é render em cascata.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!userId) { setLoadingQuizzes(false); return }
     let active = true
@@ -159,7 +157,7 @@ export default function Dashboard() {
         }
       `}</style>
 
-      {/* Header */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -174,7 +172,7 @@ export default function Dashboard() {
         </p>
       </motion.div>
 
-      {/* Stat cards */}
+      {}
       <div className="dash-stats-grid" style={{ display: 'grid', marginBottom: 16 }}>
         {stats.map(({ label, value, sub, Icon, c }, i) => (
           <motion.div
@@ -202,7 +200,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Gráfico de atividade */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -248,7 +246,7 @@ export default function Dashboard() {
         </SweepCard>
       </motion.div>
 
-      {/* Quizzes recentes */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

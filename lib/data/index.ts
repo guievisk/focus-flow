@@ -1,7 +1,3 @@
-// lib/data/index.ts
-// Ponto único de acesso à camada de dados.
-// - getDataLayer(): implementação Supabase (produção)
-// - createMemoryDataLayer(): fake em memória (testes de contrato / dev sem banco)
 
 import { DataLayerError } from './errors'
 import type {
@@ -22,20 +18,15 @@ import { createSupabaseXpRepository } from './supabase/xp.repository'
 export type { DataLayer } from './repositories'
 export { DataLayerError } from './errors'
 
-// ---------------------------------------------------------------------------
-// Produção (Supabase)
-// ---------------------------------------------------------------------------
 
 let supabaseLayer: DataLayer | null = null
 
-/** Camada de dados de produção (singleton). */
 export function getDataLayer(): DataLayer {
   if (!supabaseLayer) {
     supabaseLayer = {
       xp: createSupabaseXpRepository(),
       streak: createSupabaseStreakRepository(),
       quizzes: createSupabaseQuizRepository(),
-      // Chegam com a US2 (T026–T028): telas seguem em lib/friends.ts etc.
       profiles: notImplementedProfiles(),
       friends: notImplementedFriends(),
       chat: notImplementedChat(),
@@ -44,12 +35,8 @@ export function getDataLayer(): DataLayer {
   return supabaseLayer
 }
 
-// ---------------------------------------------------------------------------
-// Fake em memória (testes de contrato)
-// ---------------------------------------------------------------------------
 
 export type MemoryDataLayerOptions = MemoryStoreOptions & {
-  /** Usuário "autenticado" do fake — equivalente ao auth.uid() do Supabase. */
   currentUserId?: string
 }
 
@@ -70,7 +57,6 @@ export function createMemoryDataLayer(options: MemoryDataLayerOptions = {}): Mem
   }
 }
 
-// Repositórios que chegam com a US2 (T026/T027/T028).
 function notImplementedProfiles(): ProfileRepository {
   const fail = () => {
     throw new DataLayerError('unknown', 'ProfileRepository Supabase ainda não implementado (T026)')

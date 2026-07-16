@@ -1,6 +1,3 @@
-// lib/data/supabase/streak.repository.ts
-// StreakRepository sobre Supabase: RPC record_study_activity faz minutos +
-// meta diária + streak + XP numa única transação (substitui lib/streak.ts).
 
 import { DataLayerError } from '../errors'
 import type { StreakRepository } from '../repositories'

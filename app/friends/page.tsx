@@ -1,4 +1,3 @@
-// app/friends/page.tsx
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -27,7 +26,6 @@ import {
   type FriendWithProfile,
 } from '@/lib/friends'
 
-// Cache em nível de módulo — sobrevive a re-montagens do componente.
 let cache: { code: string | null; friends: FriendWithProfile[] } | null = null
 
 export default function FriendsPage() {
@@ -44,11 +42,8 @@ export default function FriendsPage() {
   const [friendships, setFriendships] = useState<FriendWithProfile[]>(cache?.friends ?? [])
   const [loadingList, setLoadingList] = useState(cache === null)
 
-  // Qual amigo tem o chat aberto (null = nenhum)
   const [chatFriend, setChatFriend] = useState<FriendWithProfile | null>(null)
 
-  // Relógio que avança sozinho — mantém o cálculo de "online" puro no render
-  // (nada de Date.now() durante a renderização) e faz a bolinha atualizar sozinha.
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30000)
@@ -78,7 +73,6 @@ export default function FriendsPage() {
   }, [userId])
 
   useEffect(() => {
-    // loadAll é assíncrono e só chama setState depois do await — não gera render em cascata.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (userId) loadAll()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,7 +92,6 @@ export default function FriendsPage() {
       try {
         await navigator.share({ text })
       } catch {
-        // usuário cancelou
       }
     } else {
       navigator.clipboard.writeText(text)
@@ -152,7 +145,7 @@ export default function FriendsPage() {
   return (
     <AppShell>
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px' }}>
-        {/* Header */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -167,7 +160,7 @@ export default function FriendsPage() {
           </p>
         </motion.div>
 
-        {/* Card: meu código */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -238,7 +231,7 @@ export default function FriendsPage() {
           </p>
         </motion.div>
 
-        {/* Card: adicionar amigo */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -305,7 +298,7 @@ export default function FriendsPage() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Solicitações recebidas */}
+        {}
         {recebidos.length > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ marginBottom: 24 }}>
             <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -322,7 +315,7 @@ export default function FriendsPage() {
           </motion.div>
         )}
 
-        {/* Amigos aceitos */}
+        {}
         <div style={{ marginBottom: 24 }}>
           <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Users size={14} color="var(--p3)" />
@@ -353,7 +346,7 @@ export default function FriendsPage() {
           )}
         </div>
 
-        {/* Enviadas */}
+        {}
         {enviados.length > 0 && (
           <div>
             <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -370,7 +363,7 @@ export default function FriendsPage() {
         )}
       </div>
 
-      {/* Janela de chat (abre quando clica no amigo) */}
+      {}
       {chatFriend && (
         <ChatWindow friend={chatFriend} onClose={() => setChatFriend(null)} />
       )}
@@ -405,7 +398,7 @@ function FriendCard({
         display: 'flex', alignItems: 'center', gap: 12,
       }}
     >
-      {/* Avatar + bolinha de online */}
+      {}
       <div style={{ position: 'relative', flexShrink: 0 }}>
         <div style={{
           width: 42, height: 42, borderRadius: '50%',

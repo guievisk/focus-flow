@@ -1,6 +1,3 @@
-// lib/data/memory/store.ts
-// Estado compartilhado dos repositórios fake. Usado pelos testes de contrato
-// e utilizável como provedor "de mentira" para rodar o app sem banco.
 
 import { DataLayerError } from '../errors'
 import type { FriendshipStatus, Message, Profile, QuizResult, XpEvent } from '../types'
@@ -18,9 +15,7 @@ export type StoredFriendship = {
 }
 
 export type MemoryStoreOptions = {
-  /** Relógio injetável — testes de streak controlam "hoje"/"ontem". */
   clock?: () => Date
-  /** Perfis pré-existentes (id obrigatório; demais campos com default). */
   profiles?: Array<Partial<Profile> & { id: string }>
 }
 
@@ -46,7 +41,6 @@ export function defaultProfile(id: string): Profile {
   }
 }
 
-/** YYYY-MM-DD nos componentes locais da data. */
 export function toDateKey(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -61,10 +55,8 @@ export class MemoryStore {
   friendships: StoredFriendship[] = []
   messages: Message[] = []
 
-  /** Mutável: testes trocam o relógio para simular passagem de dias. */
   clock: () => Date
 
-  /** Operações que devem falhar com erro de rede na PRÓXIMA chamada. */
   failNextOps = new Set<string>()
 
   private seq = 0
@@ -91,7 +83,6 @@ export class MemoryStore {
     return toDateKey(d)
   }
 
-  /** Simula falha transitória de rede se agendada para esta operação. */
   maybeFail(op: string): void {
     if (this.failNextOps.has(op)) {
       this.failNextOps.delete(op)

@@ -1,4 +1,3 @@
-// app/chat/page.tsx
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
@@ -70,7 +69,7 @@ export default function Chat() {
         }
       `}</style>
 
-      {/* Chat tela cheia */}
+      {}
       <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -78,7 +77,7 @@ export default function Chat() {
         minHeight: 0,
       }}>
 
-        {/* Lista de mensagens */}
+        {}
         <div
           ref={scrollRef}
           style={{
@@ -89,7 +88,7 @@ export default function Chat() {
           }}
         >
 
-          {/* Welcome */}
+          {}
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', paddingTop: 60, maxWidth: 640, margin: '0 auto' }}>
               <div style={{
@@ -163,7 +162,7 @@ export default function Chat() {
             </div>
           )}
 
-          {/* Mensagens */}
+          {}
           <div style={{ maxWidth: 820, margin: '0 auto' }}>
             {messages.map((msg, i) => (
               <div key={i} style={{
@@ -221,7 +220,7 @@ export default function Chat() {
               </div>
             ))}
 
-            {/* Loading */}
+            {}
             {loading && (
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 18 }}>
                 <div style={{
@@ -256,7 +255,7 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* Input area */}
+        {}
         <div style={{
           flex: '0 0 auto',
           padding: '16px 24px 20px',

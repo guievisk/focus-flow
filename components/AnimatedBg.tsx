@@ -1,11 +1,9 @@
-// components/AnimatedBg.tsx
 'use client'
 
 export default function AnimatedBg() {
   return (
     <div style={{ position:'fixed', inset:0, zIndex:0, overflow:'hidden', pointerEvents:'none' }}>
-      {/* Orbs: roxo mais profundo e saturado, com halo bem menor. A opacidade
-          baixa evita o véu claro que lavava o fundo e comia o contraste. */}
+      {}
       <div style={{
         position:'absolute', width:850, height:850, borderRadius:'50%',
         background:'radial-gradient(ellipse, rgba(90,0,196,0.22) 0%, rgba(122,0,255,0.07) 45%, transparent 70%)',
@@ -24,7 +22,7 @@ export default function AnimatedBg() {
         bottom:'0%', left:'-3%', filter:'blur(75px)',
         animation:'orb3 22s ease-in-out infinite',
       }}/>
-      {/* Grid de pontos sutil */}
+      {}
       <div style={{
         position:'absolute', inset:0,
         backgroundImage:'radial-gradient(rgba(122,0,255,0.10) 1px, transparent 1px)',
@@ -32,7 +30,7 @@ export default function AnimatedBg() {
         maskImage:'radial-gradient(ellipse 90% 90% at 50% 40%, black 30%, transparent 100%)',
         WebkitMaskImage:'radial-gradient(ellipse 90% 90% at 50% 40%, black 30%, transparent 100%)',
       }}/>
-      {/* Scrim escuro: afunda o fundo e sobe o contraste do texto por cima. */}
+      {}
       <div style={{ position:'absolute', inset:0, background:'rgba(5,3,8,0.72)' }}/>
     </div>
   )

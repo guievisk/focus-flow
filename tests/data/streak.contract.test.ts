@@ -1,6 +1,3 @@
-// tests/data/streak.contract.test.ts
-// Contrato do StreakRepository (specs/001-.../contracts/data-layer.md, itens 4-5).
-// Regras de streak idênticas às de lib/streak.ts original, agora atômicas.
 
 import { describe, expect, it } from 'vitest'
 import { createMemoryDataLayer } from '@/lib/data'
@@ -55,7 +52,6 @@ describe('StreakRepository.recordStudyActivity', () => {
   it('cruzar a meta de novo no mesmo dia mantém a sequência', async () => {
     const dl = layerWith({ streakDays: 4, lastStreakDate: '2026-07-08', minutesToday: 25, minutesTodayDate: '2026-07-08' })
 
-    // meta já batida hoje: mais minutos não mudam o streak
     const res = await dl.streak.recordStudyActivity({ minutes: 30, xp: 10, idempotencyKey: 's2' })
 
     expect(res.streakDays).toBe(4)

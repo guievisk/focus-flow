@@ -1,4 +1,3 @@
-// components/FlowMascot.tsx
 'use client'
 
 import Image from 'next/image'
@@ -24,7 +23,6 @@ const ANIMATIONS: Record<FlowAnimation, string | undefined> = {
 type Props = {
   expression?: FlowExpression
   size?: number
-  /** Animação idle: 'breathe' é ideal pra slime, 'float' sobe/desce, 'bob' balanceia. */
   animation?: FlowAnimation
   className?: string
   style?: React.CSSProperties

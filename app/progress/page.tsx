@@ -1,4 +1,3 @@
-// app/progress/page.tsx
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
@@ -28,8 +27,6 @@ function formatHours(totalMinutes: number): string {
   return `${h}h ${m}min`
 }
 
-// XP vem do ledger xp_events (getDailyXp) — inclui quiz, sessão e lição;
-// a contagem de quizzes por dia continua vindo dos resultados de quiz.
 function buildWeekData(dailyXp: DailyXp[], quizzes: QuizResult[]) {
   const quizCounts: Record<string, number> = {}
   for (const q of quizzes) {
@@ -69,14 +66,11 @@ export default function Progress() {
   const userId = user?.id
 
   useEffect(() => {
-    // Sem usuário não há o que buscar — apenas encerra o loading. Não é render em cascata.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!userId) { setLoading(false); return }
     let active = true
     ;(async () => {
       const dl = getDataLayer()
-      // Fontes independentes: se o ledger de XP falhar, os quizzes ainda aparecem
-      // (e vice-versa) em vez da tela inteira ficar vazia.
       const [quizzesResult, dailyResult] = await Promise.allSettled([
         dl.quizzes.listRecent(userId, 365),
         dl.xp.getDailyXp(userId, 7),

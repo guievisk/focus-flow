@@ -1,5 +1,3 @@
-// app/auth/callback/route.ts
-// Recebe o usuário de volta do Google e finaliza o login
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
@@ -12,7 +10,6 @@ export async function GET(req: NextRequest) {
   if (code) {
     const cookieStore = await cookies()
 
-    // Cria um cliente Supabase que funciona no servidor
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -28,10 +25,8 @@ export async function GET(req: NextRequest) {
       }
     )
 
-    // Troca o código do Google por uma sessão válida
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  // Depois de logar, manda o usuário para o dashboard
   return NextResponse.redirect(`${origin}/dashboard`)
 }

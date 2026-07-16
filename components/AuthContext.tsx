@@ -1,4 +1,3 @@
-// components/AuthContext.tsx
 'use client'
 
 import {
@@ -76,7 +75,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadProfile(user.id)
   }, [user, loadProfile])
 
-  // Auth: carrega sessão e escuta mudanças
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       const u = data.session?.user ?? null
@@ -85,12 +83,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
     })
 
-    // IMPORTANTE: o callback do onAuthStateChange roda SEGURANDO o lock de auth
-    // (navigator.locks) do supabase-js. Se chamarmos `await supabase.from(...)`
-    // aqui dentro, essa query também precisa do mesmo lock → deadlock, o
-    // `setLoading(false)` nunca roda e a tela fica em loading infinito.
-    // Por isso não usamos async/await aqui: só atualizamos o user de forma
-    // síncrona e adiamos a carga do perfil pra fora do lock (setTimeout 0).
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       if (_e === 'SIGNED_OUT') {
         setUser(null)
@@ -112,7 +104,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => listener.subscription.unsubscribe()
   }, [loadProfile])
 
-  // Atualiza last_seen a cada 30s
   const userId = user?.id
   useEffect(() => {
     if (!userId) return

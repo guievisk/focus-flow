@@ -1,4 +1,3 @@
-// components/layout/AppShell.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -14,13 +13,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
 
-  // fecha drawer ao navegar (sincroniza a UI com a navegação — fonte externa)
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false)
   }, [pathname])
 
-  // ESC fecha e trava scroll do body enquanto drawer aberto
   useEffect(() => {
     if (!mobileOpen) return
     const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setMobileOpen(false)
@@ -101,7 +98,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="appshell-root">
         <AnimatedBg />
 
-        {/* topbar mobile */}
+        {}
         <header className="appshell-topbar">
           <button
             onClick={() => setMobileOpen(true)}
@@ -134,7 +131,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         </header>
 
-        {/* backdrop mobile */}
+        {}
         <div
           className={`appshell-backdrop ${mobileOpen ? 'open' : ''}`}
           onClick={() => setMobileOpen(false)}

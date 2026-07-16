@@ -1,13 +1,9 @@
-// lib/data/memory/streak.repository.ts
-// Fake em memória do StreakRepository. Reproduz o RPC record_study_activity:
-// minutos + meta diária + streak + XP num único "commit", idempotente pela chave.
 
 import { DataLayerError } from '../errors'
 import type { StreakRepository } from '../repositories'
 import type { StudyActivity, StudyActivityResult } from '../types'
 import type { MemoryStore } from './store'
 
-/** Meta diária em minutos — mesma regra de lib/streak.ts. */
 export const DAILY_GOAL_MINUTES = 20
 
 export function createMemoryStreakRepository(
@@ -43,7 +39,6 @@ export function createMemoryStreakRepository(
         }
       }
 
-      // O evento entra ANTES dos updates — a chave cobre a atividade inteira.
       store.xpEvents.push({
         id: store.nextId('xp'),
         userId: currentUserId,

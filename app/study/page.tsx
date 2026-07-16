@@ -1,4 +1,3 @@
-// app/study/page.tsx
 'use client'
 import { useAuth } from '@/components/AuthContext'
 import { getDataLayer } from '@/lib/data'
@@ -51,8 +50,6 @@ export default function Study() {
   const timeRef = useRef(0)
 
   const [saveState, setSaveState] = useState<SaveState>('idle')
-  // Chave de idempotência: UMA por quiz concluído; retries reutilizam a mesma
-  // chave, então o servidor nunca credita XP duas vezes (FR-001/FR-004).
   const idempotencyKeyRef = useRef<string | null>(null)
   const quizIdRef = useRef<string | null>(null)
 
@@ -68,7 +65,6 @@ export default function Study() {
 
       const dl = getDataLayer()
 
-      // No retry, não recria o registro do quiz que já foi salvo.
       if (!quizIdRef.current) {
         const { quizId } = await dl.quizzes.saveResult({
           topic,
@@ -182,7 +178,6 @@ export default function Study() {
           to   { transform: translate(-50%,-50%) rotate(360deg); }
         }
 
-        /* desktop defaults */
         .study-wrap { max-width: 760px; margin: 0 auto; }
         .study-title { font-size: 30px; }
         .study-subtitle { font-size: 14px; }
@@ -226,10 +221,10 @@ export default function Study() {
       <div className="study-wrap">
         <AnimatePresence mode="wait">
 
-          {/* ============ SETUP ============ */}
+          {}
           {phase === 'setup' && (
             <motion.div key="setup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {/* Header */}
+              {}
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -244,7 +239,7 @@ export default function Study() {
                 </p>
               </motion.div>
 
-              {/* Input + glow */}
+              {}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -278,7 +273,7 @@ export default function Study() {
                   />
                 </div>
 
-                {/* Chips de sugestão */}
+                {}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
                   {SUGGESTIONS.map((s) => (
                     <button
@@ -300,7 +295,7 @@ export default function Study() {
                 </div>
               </motion.div>
 
-              {/* Nível */}
+              {}
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                 <div className="study-section-label" style={{ fontWeight: 700, color: 'var(--ink-2)', marginBottom: 12, textTransform: 'uppercase' }}>
                   Escolha a dificuldade
@@ -323,7 +318,7 @@ export default function Study() {
                 </div>
               )}
 
-              {/* Quantidade */}
+              {}
               <div style={{ marginTop: 22, marginBottom: 22 }}>
                 <div className="study-section-label" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--ink-2)', marginBottom: 12 }}>
                   Quantidade de perguntas
@@ -349,7 +344,7 @@ export default function Study() {
                 </div>
               </div>
 
-              {/* Botão gerar */}
+              {}
               <motion.button
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -377,7 +372,7 @@ export default function Study() {
             </motion.div>
           )}
 
-          {/* ============ LOADING ============ */}
+          {}
           {phase === 'loading' && (
             <motion.div
               key="loading"
@@ -398,7 +393,7 @@ export default function Study() {
             </motion.div>
           )}
 
-          {/* ============ PLAYING ============ */}
+          {}
           {phase === 'playing' && quiz && level && (
             <PlayingView
               quiz={quiz}
@@ -411,7 +406,7 @@ export default function Study() {
             />
           )}
 
-          {/* ============ RESULTS ============ */}
+          {}
           {phase === 'results' && quiz && (() => {
             const correct = Object.values(answers).filter((a, i) => a === quiz.questions[i]?.correct).length
             const total = quiz.questions.length
@@ -492,7 +487,7 @@ export default function Study() {
                   )}
                 </div>
 
-                {/* Status do salvamento — o ganho nunca se perde em silêncio (FR-004) */}
+                {}
                 <div style={{ marginBottom: 26, minHeight: 22 }}>
                   {saveState === 'saving' && (
                     <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Salvando seu XP…</span>
@@ -557,7 +552,6 @@ export default function Study() {
   )
 }
 
-/* ============ LEVEL CARD ============ */
 function LevelCard({
   level, selected, onSelect,
 }: {
@@ -619,7 +613,6 @@ function LevelCard({
   )
 }
 
-/* ============ PLAYING VIEW ============ */
 function PlayingView({
   quiz, level, currentQ, answers, timeLeft, locked, onAnswer,
 }: {

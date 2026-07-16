@@ -1,6 +1,3 @@
-// tests/data/xp.contract.test.ts
-// Contrato do XpRepository (specs/001-.../contracts/data-layer.md, itens 1-3 e 6).
-// Roda contra o fake em memória — a semântica vale para QUALQUER implementação.
 
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createMemoryDataLayer, type MemoryDataLayer } from '@/lib/data'
@@ -69,7 +66,6 @@ describe('XpRepository.awardXp', () => {
     expect(caught).toBeInstanceOf(DataLayerError)
     expect((caught as DataLayerError).retryable).toBe(true)
 
-    // Retry do usuário (mesma chave): credita exatamente uma vez.
     const retry = await dl.xp.awardXp({ amount: 50, source: 'quiz', idempotencyKey: 'k1' })
     expect(retry.xpTotal).toBe(150)
 
@@ -90,7 +86,6 @@ describe('XpRepository.getDailyXp (histórico consistente com o total — SC-001
     expect(today.date).toBe('2026-07-08')
     expect(today.xp).toBe(50)
 
-    // dias sem ganho vêm zerados (gráfico contínuo)
     expect(daily[0].xp).toBe(0)
   })
 

@@ -3,7 +3,6 @@ import Groq from 'groq-sdk'
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
-// Tipo de uma pergunta de diagnóstico
 type DiagnosticQuestion = {
   question: string
   options: string[]
@@ -11,8 +10,6 @@ type DiagnosticQuestion = {
   explanation: string
 }
 
-// Chama o Groq pedindo JSON e tenta de novo se a IA mandar algo torto.
-// O llama às vezes gera JSON inválido — em vez de quebrar o app, a gente tenta de novo.
 async function gerarPerguntas(
   systemPrompt: string,
   userPrompt: string,
@@ -28,7 +25,7 @@ async function gerarPerguntas(
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.3, // mais baixo = mais previsível = JSON mais confiável
+        temperature: 0.3,
         max_tokens: 1500,
         response_format: { type: 'json_object' },
       })
@@ -36,7 +33,6 @@ async function gerarPerguntas(
       const raw = completion.choices[0]?.message?.content || '{}'
       let parsed = JSON.parse(raw)
 
-      // Às vezes a IA embrulha tudo num array [ { ... } ] — desembrulha
       if (Array.isArray(parsed)) parsed = parsed[0]
 
       if (

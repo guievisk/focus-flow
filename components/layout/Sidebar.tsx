@@ -1,4 +1,3 @@
-// components/layout/Sidebar.tsx
 'use client'
 
 import Link from 'next/link'
@@ -71,7 +70,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: Props) {
         zIndex: 50,
       }}
     >
-      {/* X — fechar drawer (visível só em mobile via CSS no AppShell) */}
+      {}
       <button
         onClick={onClose}
         aria-label="Fechar menu"
@@ -93,7 +92,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: Props) {
         <X size={16} color="#fff" />
       </button>
 
-      {/* LOGO + NOME */}
+      {}
       <Link
         href="/dashboard"
         onClick={onClose}
@@ -120,7 +119,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: Props) {
 
       <StreakFlame />
 
-      {/* MENU */}
+      {}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, overflowY: 'auto' }}>
         {navItems
           .filter(({ href }) => href !== '/parents' || showParents)
@@ -154,7 +153,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: Props) {
           })}
       </nav>
 
-      {/* CARD DO USUÁRIO */}
+      {}
       <button
         onClick={() => signOut()}
         style={{
@@ -172,8 +171,6 @@ export default function Sidebar({ mobileOpen = false, onClose }: Props) {
         title="Clique para sair"
       >
         {avatarUrl ? (
-          // Avatar vem de host arbitrário (Supabase Storage, Google, etc.); usar
-          // next/image exigiria cadastrar cada domínio em images.remotePatterns.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avatarUrl}

@@ -1,6 +1,3 @@
-// lib/data/memory/xp.repository.ts
-// Fake em memória do XpRepository. Reproduz a semântica do RPC award_xp:
-// crédito atômico, idempotente pela chave, ledger como fonte do histórico.
 
 import { DataLayerError } from '../errors'
 import type { XpRepository } from '../repositories'

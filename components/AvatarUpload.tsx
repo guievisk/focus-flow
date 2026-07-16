@@ -8,20 +8,14 @@ import { Camera, Loader2, AlertTriangle } from 'lucide-react'
 type Props = {
   userId: string
   currentAvatarUrl: string | null
-  fallbackText: string // iniciais se não tiver foto
-  onUploaded: (newUrl: string) => void // callback pra atualizar a UI lá fora
-  size?: number // px, default 96
+  fallbackText: string
+  onUploaded: (newUrl: string) => void
+  size?: number
 }
 
 const FORMATOS_ACEITOS = ['image/jpeg', 'image/png', 'image/webp']
 const TAMANHO_MAX_MB = 10
 
-/**
- * Recorta a imagem num quadrado centralizado (lado menor manda).
- * Foto vertical 600x800 → quadrado 600x600 do centro.
- * Foto horizontal 1200x800 → quadrado 800x800 do centro.
- * Resultado: avatar quadrado sem distorção nem zoom estranho.
- */
 async function cropQuadradoCentralizado(file: File): Promise<File> {
   const img = document.createElement('img')
   const url = URL.createObjectURL(file)
@@ -88,10 +82,8 @@ export default function AvatarUpload({
     setUploading(true)
 
     try {
-      // 1. Recorta quadrado no centro (resolve distorção)
       const quadrada = await cropQuadradoCentralizado(file)
 
-      // 2. Comprime pra ~500KB, JPEG
       const comprimida = await imageCompression(quadrada, {
         maxSizeMB: 0.5,
         maxWidthOrHeight: 800,
@@ -99,10 +91,8 @@ export default function AvatarUpload({
         fileType: 'image/jpeg',
       })
 
-      // 3. Caminho fixo
       const caminho = `${userId}/avatar.jpg`
 
-      // 4. Upload
       const { error: uploadErr } = await supabase.storage
         .from('avatars')
         .upload(caminho, comprimida, {
@@ -113,13 +103,11 @@ export default function AvatarUpload({
 
       if (uploadErr) throw uploadErr
 
-      // 5. URL pública com timestamp pra matar cache
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(caminho)
       const urlFinal = `${urlData.publicUrl}?t=${Date.now()}`
 
-      // 6. Salva no banco
       const { error: dbErr } = await supabase
         .from('profiles')
         .update({ avatar_url: urlFinal })
@@ -127,7 +115,6 @@ export default function AvatarUpload({
 
       if (dbErr) throw dbErr
 
-      // 7. Avisa o pai
       onUploaded(urlFinal)
     } catch (err) {
       console.error('Erro ao subir avatar:', err)
@@ -172,7 +159,7 @@ export default function AvatarUpload({
       >
         {!currentAvatarUrl && !uploading && fallbackText}
 
-        {/* Overlay de hover/upload */}
+        {}
         <div
           style={{
             position: 'absolute',

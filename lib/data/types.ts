@@ -1,6 +1,3 @@
-// lib/data/types.ts
-// Tipos de domínio da aplicação — independentes do provedor de banco.
-// Nenhum tipo do Supabase (ou de outro provedor) pode aparecer aqui.
 
 export type Profile = {
   id: string
@@ -22,8 +19,6 @@ export type Profile = {
   studyingTopic: string | null
 }
 
-/** Campos de perfil que o cliente pode editar diretamente.
- *  XP, streak e minutos NUNCA entram aqui — só mudam via RPCs atômicos. */
 export type ProfileIdentityPatch = Partial<Pick<Profile,
   | 'fullName' | 'displayName' | 'birthDate' | 'wantsParental'
   | 'parentEmail' | 'phone' | 'avatarUrl' | 'studyingTopic' | 'lastSeen'
@@ -37,21 +32,19 @@ export type XpEvent = {
   amount: number
   source: XpSource
   sourceId: string | null
-  createdAt: string // ISO
+  createdAt: string
 }
 
 export type XpAward = {
-  amount: number // > 0
+  amount: number
   source: 'quiz' | 'lesson'
   sourceId?: string
-  /** UUID gerado UMA vez por atividade; retries reutilizam a MESMA chave. */
   idempotencyKey: string
 }
 
 export type StudyActivity = {
-  minutes: number // > 0
-  xp: number // > 0
-  /** UUID gerado UMA vez por sessão concluída; cobre XP e minutos. */
+  minutes: number
+  xp: number
   idempotencyKey: string
 }
 
@@ -60,12 +53,10 @@ export type StudyActivityResult = {
   streakDays: number
   minutesToday: number
   goalHitToday: boolean
-  /** true quando a idempotencyKey já tinha sido usada (nada foi aplicado). */
   duplicate: boolean
 }
 
 export type DailyXp = {
-  /** Dia local no formato YYYY-MM-DD. */
   date: string
   xp: number
 }

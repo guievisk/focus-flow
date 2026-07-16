@@ -1,34 +1,21 @@
-// components/SweepCard.tsx
 'use client'
 
 import { ReactNode, CSSProperties } from 'react'
 
 type Props = {
   children: ReactNode
-  /** Cor principal do sweep. Default: roxo do app. */
   accent?: string
-  /** Raio interno em px. */
   radius?: number
-  /** Opacidade do sweep (0–1). Mais baixo = mais sutil. */
   opacity?: number
-  /** Duração da rotação em segundos. Mais alto = mais elegante. */
   duration?: number
-  /** Delay (use negativo pra começar fora de fase — cria stagger entre vários cards). */
   delay?: number
-  /** Fundo sólido interno. Importante: tem que ser opaco senão o sweep vaza. */
   background?: string
-  /** Padding interno. */
   padding?: string | number
-  /** Largura da stroke (espessura da borda iluminada). */
   stroke?: number
   style?: CSSProperties
   className?: string
 }
 
-/**
- * Card com light sweep girando na borda — efeito "CC Light Rays" estilo AE.
- * Requer `@keyframes sweep` já no globals.css.
- */
 export default function SweepCard({
   children,
   accent = '#7A00FF',
@@ -53,7 +40,7 @@ export default function SweepCard({
         ...style,
       }}
     >
-      {/* light sweep girando */}
+      {}
       <div
         aria-hidden
         style={{
@@ -69,7 +56,7 @@ export default function SweepCard({
           pointerEvents: 'none',
         }}
       />
-      {/* conteúdo com fundo opaco */}
+      {}
       <div
         style={{
           position: 'relative',

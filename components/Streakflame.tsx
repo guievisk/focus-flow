@@ -1,6 +1,3 @@
-// components/StreakFlame.tsx
-// O foguinho de dias consecutivos. Mostra o número e, ao clicar,
-// abre um modal (onde sua animação Lottie vai entrar depois).
 'use client'
 
 import { useState } from 'react'
@@ -25,7 +22,7 @@ export default function StreakFlame() {
 
   return (
     <>
-      {/* Foguinho clicável */}
+      {}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -44,7 +41,7 @@ export default function StreakFlame() {
         </div>
         </motion.button>
 
-      {/* Modal que abre ao clicar */}
+      {}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -67,7 +64,7 @@ export default function StreakFlame() {
                 textAlign: 'center',
               }}
             >
-              {/* Botão fechar */}
+              {}
               <button
                 onClick={() => setOpen(false)}
                 style={{
@@ -78,9 +75,9 @@ export default function StreakFlame() {
                 <X size={20} />
               </button>
 
-              {/* ===== AQUI VAI ENTRAR SUA ANIMAÇÃO LOTTIE ===== */}
-              {/* Por enquanto, um foguinho grande com glow animado */}
-              {/* Animação Lottie do foguinho */}
+              {}
+              {}
+              {}
               <div
                 style={{
                   width: 160,
@@ -97,7 +94,7 @@ export default function StreakFlame() {
                 {days === 1 ? 'dia de sequência' : 'dias de sequência'}
               </div>
 
-              {/* Progresso de hoje */}
+              {}
               <div style={{
                 padding: 14, borderRadius: 12,
                 background: 'rgba(122,0,255,0.08)', border: '1px solid rgba(122,0,255,0.2)',

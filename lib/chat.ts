@@ -1,4 +1,3 @@
-// lib/chat.ts
 import { supabase } from '@/lib/supabase'
 
 export type Message = {
@@ -10,9 +9,6 @@ export type Message = {
   readAt: string | null
 }
 
-/**
- * Envia uma mensagem pra um amigo.
- */
 export async function sendMessage(
   senderId: string,
   receiverId: string,
@@ -55,11 +51,6 @@ export async function sendMessage(
   }
 }
 
-/**
- * Lista mensagens entre eu e um amigo, da mais antiga pra mais nova.
- * Se `since` for passado (timestamp ISO), retorna só as mais novas que isso —
- * usado no polling pra buscar apenas mensagens novas em vez de tudo de novo.
- */
 export async function listMessages(
   myUserId: string,
   friendId: string,

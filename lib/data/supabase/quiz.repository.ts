@@ -1,5 +1,3 @@
-// lib/data/supabase/quiz.repository.ts
-// QuizRepository sobre Supabase: tabela quiz_results.
 
 import { DataLayerError } from '../errors'
 import type { QuizRepository } from '../repositories'

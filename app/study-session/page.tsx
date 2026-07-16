@@ -1,4 +1,3 @@
-// app/study-session/page.tsx
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -74,8 +73,6 @@ export default function StudySessionPage() {
   const [earnedXp, setEarnedXp] = useState(0)
   const [earnedMinutes, setEarnedMinutes] = useState(0)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'retry' | 'failed'>('idle')
-  // Chave de idempotência: UMA por sessão concluída — retries reutilizam a
-  // mesma chave e o servidor nunca credita XP/minutos duas vezes (FR-004).
   const sessionKeyRef = useRef<string | null>(null)
   const [levelLabels, setLevelLabels] = useState({
     beginner: 'Iniciante', intermediate: 'Intermediário', advanced: 'Avançado',
@@ -339,7 +336,7 @@ export default function StudySessionPage() {
       <div className="ses-wrap">
         <AnimatePresence mode="wait">
 
-        {/* ============ MODO 1: DIGITAR TEMA ============ */}
+        {}
         {step === 'topic' && (
           <motion.div key="topic" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }}>
             <motion.div
@@ -452,7 +449,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 2: CARREGANDO DIAGNÓSTICO ============ */}
+        {}
         {step === 'loading-diagnosis' && (
           <motion.div key="loading-diag" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="ses-loading-pad" style={{ textAlign: 'center' }}>
             <div style={{ marginBottom: 22 }}>
@@ -467,7 +464,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 3: RESPONDENDO DIAGNÓSTICO ============ */}
+        {}
         {step === 'diagnosing' && questions.length > 0 && (
           <motion.div key={`q-${currentQ}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.35 }}>
             <div style={{ marginBottom: 24 }}>
@@ -545,7 +542,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 4: NÍVEL REVELADO ============ */}
+        {}
         {step === 'level-revealed' && level && (
           <motion.div
             key="revealed"
@@ -633,7 +630,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 5: CARREGANDO PLANO ============ */}
+        {}
         {step === 'loading-plan' && (
           <motion.div key="loading-plan" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="ses-loading-pad" style={{ textAlign: 'center' }}>
             <div style={{ marginBottom: 22 }}>
@@ -648,7 +645,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 6: PLANO REVELADO ============ */}
+        {}
         {step === 'plan-revealed' && lessonSteps.length > 0 && level && (
           <motion.div key="plan" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <div style={{ marginBottom: 26 }}>
@@ -749,7 +746,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 7: CARREGANDO AULA ============ */}
+        {}
         {step === 'loading-lesson' && (
           <motion.div key="loading-lesson" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="ses-loading-pad" style={{ textAlign: 'center' }}>
             <div style={{ marginBottom: 22 }}>
@@ -764,7 +761,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 8: AULA + EXERCÍCIO ============ */}
+        {}
         {step === 'lesson-content' && stepContent && (
           <motion.div
             key={`lesson-${currentStepIndex}-${attemptNumber}`}
@@ -929,7 +926,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 9: FEEDBACK ============ */}
+        {}
         {step === 'lesson-feedback' && feedback && (
           <motion.div
             key="feedback"
@@ -987,7 +984,7 @@ export default function StudySessionPage() {
           </motion.div>
         )}
 
-        {/* ============ MODO 10: AULA CONCLUÍDA ============ */}
+        {}
         {step === 'lesson-done' && (
           <motion.div
             key="done"
@@ -1049,7 +1046,7 @@ export default function StudySessionPage() {
               </div>
             </motion.div>
 
-            {/* Status do salvamento — o ganho nunca se perde em silêncio (FR-004) */}
+            {}
             <div style={{ marginBottom: 26, minHeight: 22 }}>
               {saveState === 'saving' && (
                 <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>Salvando seu progresso…</span>

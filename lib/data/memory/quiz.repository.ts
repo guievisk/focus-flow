@@ -1,5 +1,3 @@
-// lib/data/memory/quiz.repository.ts
-// Fake em memória do QuizRepository.
 
 import { DataLayerError } from '../errors'
 import type { QuizRepository } from '../repositories'

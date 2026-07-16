@@ -1,4 +1,3 @@
-// components/ChatWindow.tsx
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -31,7 +30,6 @@ export default function ChatWindow({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Carga inicial das mensagens
   useEffect(() => {
     if (!userId) return
     let cancelled = false
@@ -51,7 +49,6 @@ export default function ChatWindow({
     return () => { cancelled = true }
   }, [userId, friend.friendId])
 
-  // Polling a cada 3s — busca só mensagens novas (since = última que já temos)
   useEffect(() => {
     if (!userId) return
 
@@ -92,20 +89,19 @@ export default function ChatWindow({
       const result = await sendMessage(userId, friend.friendId, content)
       if (result.ok && result.message) {
         setMessages((prev) => {
-          // evita duplicata caso o polling já tenha pego
           if (prev.some((m) => m.id === result.message!.id)) return prev
           return [...prev, result.message!]
         })
         lastTimestampRef.current = result.message.createdAt
         setTimeout(scrollToBottom, 100)
       } else {
-        setInput(content) // devolve o texto se falhou
+        setInput(content)
       }
     } catch (err) {
       console.error('Erro ao enviar mensagem:', err)
       setInput(content)
     } finally {
-      setSending(false) // SEMPRE reseta — botão nunca trava
+      setSending(false)
     }
   }
 
@@ -146,7 +142,7 @@ export default function ChatWindow({
             boxShadow: '0 9px 12px rgba(0,0,0,0.5)',
           }}
         >
-          {/* Header */}
+          {}
           <div style={{
             padding: '14px 16px',
             borderBottom: '1px solid var(--p-line)',
@@ -180,7 +176,7 @@ export default function ChatWindow({
             </button>
           </div>
 
-          {/* Lista de mensagens */}
+          {}
           <div style={{
             flex: 1, overflowY: 'auto', padding: 16,
             display: 'flex', flexDirection: 'column', gap: 8,
@@ -228,7 +224,7 @@ export default function ChatWindow({
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Campo de digitar */}
+          {}
           <div style={{
             padding: 12,
             borderTop: '1px solid var(--p-line)',

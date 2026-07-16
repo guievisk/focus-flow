@@ -1,5 +1,3 @@
-// components/Card.tsx
-// Card com efeito de brilho que segue o cursor do mouse
 'use client'
 
 import { useRef } from 'react'
@@ -13,12 +11,6 @@ export default function Card({
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
-  /*
-   LINGUAGEM → React + eventos do mouse
-      Quando o mouse se move sobre o card, calculamos a
-      posição relativa (x,y) e atualizamos as variáveis CSS
-      --mx e --my. O brilho radial no ::after segue essa posição.
-  */
   const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = ref.current
     if (!el) return

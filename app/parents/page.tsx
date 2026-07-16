@@ -1,16 +1,12 @@
-// app/parents/page.tsx
 'use client'
 
-// Importações de gráficos
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts'
 
-// Importações de ícones
 import { Clock, CheckCircle, Target, Activity, AlertCircle, Info, Bell, Shield } from 'lucide-react'
 
 import AppShell from '@/components/layout/AppShell'
 import { useAuth } from '@/components/AuthContext'
 
-// Estilo base reutilizável dos cards
 const card: React.CSSProperties = {
   background: 'var(--surface)',
   borderRadius: 14,
@@ -18,7 +14,6 @@ const card: React.CSSProperties = {
   padding: '22px 24px',
 }
 
-// Dados de foco semanal do aluno
 const weekData = [
   { d: 'Seg', min: 20 }, { d: 'Ter', min: 42 },
   { d: 'Qua', min: 15 }, { d: 'Qui', min: 58 },
@@ -26,7 +21,6 @@ const weekData = [
   { d: 'Dom', min: 22 },
 ]
 
-// Dados de foco por hora do dia — mostra quando o aluno mais estuda
 const hourData = [
   { h: '8h', min: 5  }, { h: '9h',  min: 12 }, { h: '10h', min: 8  },
   { h: '11h', min: 20 }, { h: '12h', min: 3  }, { h: '13h', min: 0  },
@@ -34,7 +28,6 @@ const hourData = [
   { h: '17h', min: 15 }, { h: '18h', min: 7  }, { h: '19h', min: 2  },
 ]
 
-// Alertas gerados automaticamente pelo sistema de monitoramento
 const alerts = [
   { type: 'warning', msg: 'Saiu da plataforma por 8 min às 14h30',      time: 'Hoje, 14h30'   },
   { type: 'success', msg: 'Completou 5 quizzes de Matemática',           time: 'Hoje, 13h15'   },
@@ -44,7 +37,6 @@ const alerts = [
   { type: 'warning', msg: 'Mudou de aba 4 vezes em 10 minutos',          time: 'Seg, 14h20'    },
 ]
 
-// Histórico de quizzes recentes do aluno
 const quizHistory = [
   { subject: 'Alexandre o Grande', score: 8,  total: 10, date: 'Hoje'         },
   { subject: 'Sistema Solar',      score: 7,  total: 10, date: 'Ontem'        },
@@ -53,7 +45,6 @@ const quizHistory = [
   { subject: 'Fotossíntese',       score: 10, total: 10, date: '4 dias atrás' },
 ]
 
-// Cores e ícones dos tipos de alerta
 const alertStyle = {
   warning: { color: '#FFA800', bg: 'rgba(245,158,11,.1)',  border: 'rgba(245,158,11,.25)',  Icon: AlertCircle },
   success: { color: '#00C97B', bg: 'rgba(16,185,129,.1)',  border: 'rgba(16,185,129,.25)',  Icon: CheckCircle },
@@ -75,7 +66,7 @@ const avatarUrl =
   null
   return (
     <AppShell>
-      {/* Cabeçalho */}
+      {}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--ink)', letterSpacing: '-.5px' }}>
           Painel dos pais
@@ -85,7 +76,7 @@ const avatarUrl =
         </p>
       </div>
 
-      {/* Banner de status do aluno */}
+      {}
 <div style={{
   ...card,
   marginBottom: 18,
@@ -96,7 +87,7 @@ const avatarUrl =
   justifyContent: 'space-between',
 }}>
   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-    {/* Avatar do aluno */}
+    {}
     <div style={{
       width: 52,
       height: 52,
@@ -124,14 +115,14 @@ const avatarUrl =
       <div style={{ fontSize: 13, color: 'var(--ink-3)', marginTop: 2 }}>Plano Família · 7 dias de sequência</div>
     </div>
   </div>
-  {/* Indicador de status online */}
+  {}
   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 8, background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.2)' }}>
     <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00C97B' }} />
     <span style={{ fontSize: 13, fontWeight: 600, color: '#00C97B' }}>Estudando agora</span>
   </div>
 </div>
 
-      {/* Cards de estatísticas */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 18 }}>
         {[
           { label: 'Foco hoje',      value: '32 min', sub: 'Meta: 45 min', Icon: Clock,        c: '#6216D8' },
@@ -152,10 +143,10 @@ const avatarUrl =
         ))}
       </div>
 
-      {/* Gráficos */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
 
-        {/* Foco semanal */}
+        {}
         <div style={{ ...card, padding: 22 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Foco semanal</h3>
@@ -171,7 +162,7 @@ const avatarUrl =
           </ResponsiveContainer>
         </div>
 
-        {/* Foco por hora do dia */}
+        {}
         <div style={{ ...card, padding: 22 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Horário de estudo</h3>
@@ -194,10 +185,10 @@ const avatarUrl =
         </div>
       </div>
 
-      {/* Alertas e histórico lado a lado */}
+      {}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
 
-        {/* Alertas de monitoramento */}
+        {}
         <div style={card}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Alertas de monitoramento</h3>
@@ -226,14 +217,13 @@ const avatarUrl =
           </div>
         </div>
 
-        {/* Histórico de quizzes */}
+        {}
         <div style={card}>
           <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', marginBottom: 18 }}>
             Quizzes recentes
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {quizHistory.map((q, i) => {
-              // Calcula a cor da nota baseado no percentual de acerto
               const pct = q.score / q.total
               const color = pct >= 0.8 ? '#00C97B' : pct >= 0.6 ? '#FFA800' : '#FF3B3B'
               return (
@@ -252,7 +242,7 @@ const avatarUrl =
             })}
           </div>
 
-          {/* Resumo de segurança */}
+          {}
           <div style={{
             marginTop: 16, padding: '12px 14px', borderRadius: 10,
             background: 'rgba(98,22,216,.08)', border: '1px solid rgba(98,22,216,.15)',

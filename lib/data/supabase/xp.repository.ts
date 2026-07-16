@@ -1,6 +1,3 @@
-// lib/data/supabase/xp.repository.ts
-// XpRepository sobre Supabase: escrita via RPC award_xp (atômico/idempotente),
-// leitura do histórico direto do ledger xp_events (RLS: só as próprias linhas).
 
 import { DataLayerError } from '../errors'
 import type { XpRepository } from '../repositories'
@@ -17,7 +14,6 @@ type XpEventRow = {
   created_at: string
 }
 
-/** YYYY-MM-DD nos componentes locais da data (mesma regra do fake). */
 function toDateKey(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')

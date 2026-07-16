@@ -1,4 +1,3 @@
-// app/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -29,18 +28,11 @@ const FEATURES = [
 export default function Login() {
   const [loading, setLoading] = useState(false)
 
-  /*
-   LINGUAGEM → Supabase Auth + OAuth
-      Quando o usuário clica em "Entrar com Google", chamamos
-      signInWithOAuth. O Supabase redireciona para o Google,
-      o usuário faz login, e volta para o nosso site já logado.
-  */
   const loginGoogle = async () => {
     setLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        // Para onde o Google manda o usuário depois do login
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
@@ -89,7 +81,7 @@ export default function Login() {
       `}</style>
 
       <div className="login-grid">
-        {/* Coluna esquerda — proposta de valor */}
+        {}
         <motion.div
           className="login-hero"
           initial={{ opacity: 0, y: 16 }}
@@ -155,7 +147,7 @@ export default function Login() {
           </div>
         </motion.div>
 
-        {/* Coluna direita — card de login */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -171,7 +163,7 @@ export default function Login() {
             textAlign: 'center',
           }}
         >
-          {/* Logo */}
+          {}
           <Image
             src="/logo.png"
             alt="FocusFlow"
@@ -193,7 +185,7 @@ export default function Login() {
             Entre para começar a estudar do jeito que funciona pra você.
           </p>
 
-          {/* Botão Google */}
+          {}
           <button
             onClick={loginGoogle}
             disabled={loading}
@@ -207,7 +199,7 @@ export default function Login() {
               opacity: loading ? 0.7 : 1,
             }}
           >
-            {/* Logo do Google em SVG */}
+            {}
             <svg width="18" height="18" viewBox="0 0 18 18">
               <path fill="#6E00E0" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.92c1.71-1.57 2.68-3.89 2.68-6.62z"/>
               <path fill="#6E00E0" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 009 18z"/>

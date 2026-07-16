@@ -1,5 +1,3 @@
-// lib/age.ts
-// Calcula a idade a partir de uma data de nascimento (string)
 
 export function calcAge(birthDate: string | null): number | null {
   if (!birthDate) return null
@@ -11,10 +9,8 @@ export function calcAge(birthDate: string | null): number | null {
   return age
 }
 
-// Decide se o painel dos pais deve aparecer
 export function shouldShowParents(birthDate: string | null, wantsParental: boolean): boolean {
   const age = calcAge(birthDate)
   if (age === null) return false
-  // Só aparece se for menor de 18 E tiver ativado o controle parental
   return age < 18 && wantsParental
 }

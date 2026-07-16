@@ -1,4 +1,3 @@
-// app/profile/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -23,7 +22,6 @@ export default function Profile() {
   const [avatarUrl, setAvatarUrl]     = useState<string | null>(null)
 
   useEffect(() => {
-    // Inicializa os campos editáveis a partir do perfil carregado (fonte externa).
     if (profile) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDisplayName(profile.display_name || '')
@@ -102,7 +100,7 @@ export default function Profile() {
         }
       `}</style>
 
-      {/* Header */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: .4 }} style={{ marginBottom: 24 }}
@@ -115,14 +113,14 @@ export default function Profile() {
 
       <div className="prof-main-grid">
 
-        {/* Coluna esquerda: editar informações */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: .4, delay: .1 }}
         >
           <SweepCard radius={14} padding={0} duration={6} delay={0} opacity={0.32} accent={ACCENT}>
             <div className="prof-card-padding">
-              {/* Avatar + nome */}
+              {}
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
                 <AvatarUpload
                   userId={user?.id || ''}
@@ -193,13 +191,13 @@ export default function Profile() {
           </SweepCard>
         </motion.div>
 
-        {/* Coluna direita: gamificação */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: .4, delay: .2 }}
           className="prof-side-col"
         >
-          {/* Nível + XP */}
+          {}
           <SweepCard radius={14} padding={0} duration={5} delay={-1.5} opacity={0.35} accent="#2E6BFF">
             <div className="prof-side-padding">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -239,7 +237,7 @@ export default function Profile() {
             </div>
           </SweepCard>
 
-          {/* Minutos */}
+          {}
           <SweepCard radius={14} padding={0} duration={5} delay={-2.8} opacity={0.35} accent="#FFA800">
             <div className="prof-side-padding">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>

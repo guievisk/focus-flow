@@ -1,4 +1,3 @@
-// lib/friends.ts
 import { supabase } from '@/lib/supabase'
 
 export type FriendshipStatus = 'pending' | 'accepted'
@@ -26,14 +25,10 @@ export type FriendWithProfile = {
 
 export const MAX_AMIGOS = 30
 
-// Ordena 2 UUIDs alfabeticamente pra garantir constraint user_a < user_b
 function orderPair(a: string, b: string): [string, string] {
   return a < b ? [a, b] : [b, a]
 }
 
-/**
- * Pega meu invite_code do banco
- */
 export async function getMyInviteCode(userId: string): Promise<string | null> {
   console.log(' getMyInviteCode INICIO', userId)
   try {
@@ -56,16 +51,12 @@ export async function getMyInviteCode(userId: string): Promise<string | null> {
   }
 }
 
-/**
- * Envia solicitação de amizade pelo invite_code
- */
 export async function sendFriendRequest(
   myUserId: string,
   inviteCode: string
 ): Promise<{ ok: boolean; error?: string }> {
   const codeClean = inviteCode.trim().toUpperCase()
 
-  // 1. Acha o usuário dono daquele código
   const { data: target, error: targetErr } = await supabase
     .from('profiles')
     .select('id')
@@ -82,7 +73,6 @@ export async function sendFriendRequest(
 
   const [a, b] = orderPair(myUserId, target.id)
 
-  // 2. Já existe amizade?
   const { data: existing } = await supabase
     .from('friendships')
     .select('id, status')
@@ -98,7 +88,6 @@ export async function sendFriendRequest(
     }
   }
 
-  // 3. Limite de amigos
   const { count } = await supabase
     .from('friendships')
     .select('id', { count: 'exact', head: true })
@@ -109,7 +98,6 @@ export async function sendFriendRequest(
     return { ok: false, error: `Limite de ${MAX_AMIGOS} amigos atingido` }
   }
 
-  // 4. Insere
   const { error: insertErr } = await supabase.from('friendships').insert({
     user_a: a,
     user_b: b,
@@ -125,9 +113,6 @@ export async function sendFriendRequest(
   return { ok: true }
 }
 
-/**
- * Aceita solicitação de amizade
- */
 export async function acceptFriendRequest(friendshipId: string) {
   const { error } = await supabase
     .from('friendships')
@@ -137,9 +122,6 @@ export async function acceptFriendRequest(friendshipId: string) {
   if (error) console.error('Erro ao aceitar:', error)
 }
 
-/**
- * Remove amizade ou cancela solicitação
- */
 export async function removeFriendship(friendshipId: string) {
   const { error } = await supabase
     .from('friendships')
@@ -149,16 +131,12 @@ export async function removeFriendship(friendshipId: string) {
   if (error) console.error('Erro ao remover:', error)
 }
 
-/**
- * Lista amizades do usuário (sem JOIN, 2 queries separadas pra evitar bugs)
- */
 export async function listFriendships(
   myUserId: string
 ): Promise<FriendWithProfile[]> {
   console.log(' listFriendships INICIO', myUserId)
 
   try {
-    // 1. Busca todas as amizades onde eu sou parte
     const { data: friendships, error: fErr } = await supabase
       .from('friendships')
       .select('id, user_a, user_b, status, requested_by, created_at')
@@ -177,13 +155,11 @@ export async function listFriendships(
 
     console.log(' listFriendships:', friendships.length, 'amizades encontradas')
 
-    // 2. Pega os IDs únicos dos amigos (não os meus)
     const friendIds = friendships.map((f) =>
       f.user_a === myUserId ? f.user_b : f.user_a
     )
     const uniqueFriendIds = Array.from(new Set(friendIds))
 
-    // 3. Busca os perfis desses amigos numa query separada
     const { data: profiles, error: pErr } = await supabase
       .from('profiles')
       .select('id, display_name, full_name, avatar_url, invite_code, last_seen')
@@ -196,10 +172,8 @@ export async function listFriendships(
 
     console.log(' listFriendships: perfis carregados', profiles?.length)
 
-    // 4. Cria um Map pra lookup rápido
     const profileMap = new Map(profiles?.map((p) => [p.id, p]) || [])
 
-    // 5. Combina os dados
     const result = friendships.map((f) => {
       const friendId = f.user_a === myUserId ? f.user_b : f.user_a
       const profile = profileMap.get(friendId)

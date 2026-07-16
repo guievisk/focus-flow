@@ -1,19 +1,16 @@
-// focusflow-health.js — teste de carga no endpoint /api/health
-// Objetivo: descobrir onde a rota dinâmica começa a sofrer
 import http from 'k6/http'
 import { check, sleep } from 'k6'
 import { Trend } from 'k6/metrics'
 
-// Métrica customizada — vamos rastrear latência do Supabase separadamente
 const supabaseLatency = new Trend('supabase_latency_ms')
 
 export const options = {
   stages: [
-    { duration: '30s', target: 5   }, // warm-up: 5 VUs
-    { duration: '1m',  target: 20  }, // escala pra 20 VUs em 1 min
-    { duration: '1m',  target: 50  }, // sobe pra 50 VUs
-    { duration: '30s', target: 100 }, // pico de 100 VUs em 30s
-    { duration: '30s', target: 0   }, // cooldown
+    { duration: '30s', target: 5   },
+    { duration: '1m',  target: 20  },
+    { duration: '1m',  target: 50  },
+    { duration: '30s', target: 100 },
+    { duration: '30s', target: 0   },
   ],
   thresholds: {
     http_req_duration:  ['p(95)<3000'],
@@ -33,7 +30,6 @@ export default function () {
     'response < 3s':       (r) => r.timings.duration < 3000,
   })
   
-  // Extrai a latência do Supabase do JSON de resposta e adiciona à métrica
   if (res.status === 200) {
     try {
       const body = res.json()
@@ -42,7 +38,6 @@ export default function () {
         supabaseLatency.add(latency)
       }
     } catch (e) {
-      // ignora erros de parse
     }
   }
   

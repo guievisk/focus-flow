@@ -1,4 +1,3 @@
-// app/api/check-answer/route.ts
 import { NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
 
@@ -9,7 +8,6 @@ type AnswerResult = {
   feedback: string
 }
 
-// Parse tolerante (tira markdown, devolve null se quebrar)
 function tryParseJson(raw: string): unknown {
   let cleaned = raw.trim()
   if (cleaned.startsWith('```')) {
@@ -22,7 +20,6 @@ function tryParseJson(raw: string): unknown {
   }
 }
 
-// Aceita boolean de verdade OU string ("true", "sim", "correct"...)
 function coerceBool(v: unknown): boolean | null {
   if (typeof v === 'boolean') return v
   if (typeof v === 'string') {
@@ -33,7 +30,6 @@ function coerceBool(v: unknown): boolean | null {
   return null
 }
 
-// Chama o Groq pedindo JSON, com retry de robustez. Retorna o objeto ou null.
 async function askGroqJson(
   systemPrompt: string,
   userPrompt: string,
@@ -75,8 +71,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Dados incompletos' }, { status: 400 })
     }
 
-    // ============ MÚLTIPLA ESCOLHA ============
-    // Acerto é decidido LOCALMENTE — nunca falha. A IA só gera o feedback.
     if (exercise.type === 'multiple-choice') {
       const isCorrect = Number(studentAnswer) === exercise.correctIndex
       const correctText = exercise.options?.[exercise.correctIndex] ?? ''
@@ -100,7 +94,6 @@ Result: ${isCorrect ? 'CORRECT' : 'WRONG'}
 
 Generate the feedback. Return only JSON.`
 
-      // 2 tentativas bastam — feedback é cosmético, o acerto já está decidido
       const parsed = await askGroqJson(systemPrompt, userPrompt, 0.7, 250, 2)
 
       const feedback =
@@ -115,8 +108,6 @@ Generate the feedback. Return only JSON.`
       })
     }
 
-    // ============ TEXTO LIVRE ============
-    // Aqui a IA precisa JULGAR o acerto. Retry 3x; se falhar, fallback honesto.
     if (exercise.type === 'free-text') {
       const systemPrompt = `You are a fair and warm tutor for students with ADHD.
 
@@ -156,7 +147,6 @@ Judge if the student's answer is essentially correct, then give feedback. Return
         })
       }
 
-      // IA falhou em julgar — fallback honesto: não celebra nem pune à toa
       const expected = exercise.expectedAnswer || ''
       return NextResponse.json({
         result: {

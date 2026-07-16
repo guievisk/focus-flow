@@ -1,4 +1,3 @@
-// app/api/lesson-plan/route.ts
 import { NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
 
@@ -10,10 +9,7 @@ type LessonStep = {
   estimatedMinutes: number
 }
 
-// Extrai o array de steps tolerando vários formatos que o modelo pode devolver.
-// Retorna null se não conseguir — aí o retry tenta de novo.
 function extractSteps(raw: string): LessonStep[] | null {
-  // Tira cercas de markdown se vierem (```json ... ```)
   let cleaned = raw.trim()
   if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```(json)?/i, '').replace(/```$/i, '').trim()
@@ -23,21 +19,19 @@ function extractSteps(raw: string): LessonStep[] | null {
   try {
     parsed = JSON.parse(cleaned)
   } catch {
-    return null // JSON malformado
+    return null
   }
 
-  // Acha o array, tolerando formatos diferentes
   let arr: unknown[] | null = null
   if (Array.isArray(parsed)) {
-    arr = parsed // modelo devolveu o array direto
+    arr = parsed
   } else if (parsed && typeof parsed === 'object') {
     const obj = parsed as Record<string, unknown>
     if (Array.isArray(obj.steps)) {
-      arr = obj.steps // formato esperado
+      arr = obj.steps
     } else if (obj.steps && typeof obj.steps === 'object') {
-      arr = [obj.steps] // devolveu um objeto só
+      arr = [obj.steps]
     } else {
-      // procura qualquer propriedade que seja array
       const arrayKey = Object.keys(obj).find((k) => Array.isArray(obj[k]))
       if (arrayKey) arr = obj[arrayKey] as unknown[]
     }
@@ -45,7 +39,6 @@ function extractSteps(raw: string): LessonStep[] | null {
 
   if (!Array.isArray(arr) || arr.length === 0) return null
 
-  // Normaliza cada step (garante os campos, sem quebrar se faltar algo)
   const steps: LessonStep[] = (arr as Record<string, unknown>[])
     .filter((s) => s && (s.title || s.description))
     .map((s) => ({
@@ -131,7 +124,6 @@ Student level: ${level}
 
 Design a 5-step lesson plan strictly about "${topic.trim()}", calibrated to ${level} level. Return only the JSON.`
 
-    // Retry até 3 vezes. Se falhar, baixa a temperatura pra ficar mais determinístico.
     const MAX_TENTATIVAS = 3
     let lastError = ''
 
@@ -143,7 +135,7 @@ Design a 5-step lesson plan strictly about "${topic.trim()}", calibrated to ${le
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
           ],
-          temperature: tentativa === 1 ? 0.5 : 0.3, // 1ª com variedade, retries mais secos
+          temperature: tentativa === 1 ? 0.5 : 0.3,
           max_tokens: 1500,
           response_format: { type: 'json_object' },
         })
@@ -163,7 +155,6 @@ Design a 5-step lesson plan strictly about "${topic.trim()}", calibrated to ${le
       }
     }
 
-    // Todas as tentativas falharam
     console.error('lesson-plan: todas as tentativas falharam. Último erro:', lastError)
     return NextResponse.json(
       { error: 'Não consegui gerar o plano agora. Tenta de novo.' },

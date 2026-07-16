@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from 'next'
 import './globals.css'
 import { MethodProvider } from '@/components/MethodContext'
@@ -13,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body>
-        {/* AuthProvider envolve tudo — qualquer página sabe quem logou */}
+        {}
         <AuthProvider>
           <MethodProvider>
             {children}

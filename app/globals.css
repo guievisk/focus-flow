@@ -1,26 +1,22 @@
-/* app/globals.css */
 @import url('https://fonts.cdnfonts.com/css/google-sans');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Roxo — acentos (botões, bordas, ícones) */
   --p:      #7A00FF;
   --p2:     #5A00C4;
   --p3:     #A64DFF;
   --p-soft: rgba(122,0,255,0.12);
   --p-line: rgba(122,0,255,0.30);
 
-  /* Fundos */
   --bg:     #050308;
   --bg2:    #0A0514;
-  --card:   rgba(14,8,24,0.86);   /* quase sólido: superfície lida como camada, não como véu */
+  --card:   rgba(14,8,24,0.86);
 
-  /* Texto — cinza NEUTRO (sem tom roxo) */
-  --ink:    #F8F8FA;   /* principal — branco neutro */
-  --ink-2:  #C4C4CE;   /* secundário — cinza médio */
-  --ink-3:  #8C8C99;   /* terciário — cinza escuro */
+  --ink:    #F8F8FA;
+  --ink-2:  #C4C4CE;
+  --ink-3:  #8C8C99;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,14 +34,12 @@ h1,h2,h3,h4,h5 { font-family: 'Product Sans', sans-serif; letter-spacing: -0.02e
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-thumb { background: rgba(110,40,224,0.4); border-radius: 8px; }
 
-/* ── Card com contorno gradiente animado no hover ── */
 .glass-card {
   position: relative;
   background: var(--card);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 18px;
-  /* Borda visível é o que separa a superfície do fundo agora que não há halo. */
   border: 1px solid rgba(122,0,255,0.28);
   transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
   overflow: hidden;
@@ -62,7 +56,6 @@ h1,h2,h3,h4,h5 { font-family: 'Product Sans', sans-serif; letter-spacing: -0.02e
 .glass-card:hover {
   transform: translateY(-4px);
   border-color: rgba(122,0,255,0.65);
-  /* Profundidade vem de sombra PRETA (não de halo roxo borrado) + anel nítido. */
   box-shadow: 0 10px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(122,0,255,0.35);
 }
 .glass-card:hover::before { opacity: 1; }
@@ -101,7 +94,6 @@ h1,h2,h3,h4,h5 { font-family: 'Product Sans', sans-serif; letter-spacing: -0.02e
   50%      { box-shadow: 0 0 23px rgba(110,40,224,0.41), 0 0 45px rgba(109,40,217,0.23); }
 }
 
-/* Sweep animation para cards com borda giratória */
 @keyframes sweep {
   from { transform: translate(-50%,-50%) rotate(0deg); }
   to   { transform: translate(-50%,-50%) rotate(360deg); }
